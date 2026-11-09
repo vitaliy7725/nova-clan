@@ -4,787 +4,171 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>NOVA — Клан</title>
+  <link rel="icon" type="image/png" href="logo.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: #0d1117;
-      color: #c9d1d9;
-      line-height: 1.6;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* ---------- БОКОВОЕ МЕНЮ ---------- */
-    .sidebar {
-      position: fixed;
-      top: 0; left: 0;
-      width: 260px;
-      height: 100%;
-      background: #161b22;
-      border-right: 1px solid #21262d;
-      padding: 24px 16px;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0d1117; color: #c9d1d9; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+    .sidebar { position: fixed; top: 0; left: 0; width: 260px; height: 100%; background: #161b22; border-right: 1px solid #21262d; padding: 24px 16px; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 1000; display: flex; flex-direction: column; overflow-y: auto; }
     .sidebar.open { transform: translateX(0); }
-
-    .sidebar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #21262d;
-    }
+    .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #21262d; }
     .logo { display: flex; align-items: center; gap: 10px; }
-    .logo .icon { font-size: 1.5rem; color: #58a6ff; }
-    .logo h1 {
-      font-size: 1.5rem; font-weight: 700;
-      letter-spacing: 2px; color: #58a6ff;
-    }
-    .close-btn {
-      background: none; border: none;
-      color: #8b949e; font-size: 1.5rem;
-      cursor: pointer; padding: 6px; border-radius: 6px;
-      transition: 0.2s; line-height: 1;
-    }
+    .logo img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; }
+    .logo h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: 2px; color: #58a6ff; }
+    .close-btn { background: none; border: none; color: #8b949e; font-size: 1.5rem; cursor: pointer; padding: 6px; border-radius: 6px; transition: 0.2s; line-height: 1; }
     .close-btn:hover { background: #21262d; color: #c9d1d9; }
-
-    .sidebar-user {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px;
-      background: #0d1117;
-      border: 1px solid #21262d;
-      border-radius: 10px;
-      margin-bottom: 16px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .sidebar-user:hover {
-      border-color: #58a6ff;
-      background: rgba(88, 166, 255, 0.05);
-    }
-    .user-avatar {
-      width: 38px; height: 38px;
-      border-radius: 50%;
-      background: rgba(88, 166, 255, 0.15);
-      color: #58a6ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 1rem;
-      flex-shrink: 0;
-      border: 1px solid rgba(88, 166, 255, 0.3);
-      overflow: hidden;
-    }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d1117; border: 1px solid #21262d; border-radius: 10px; margin-bottom: 16px; cursor: pointer; transition: 0.2s; }
+    .sidebar-user:hover { border-color: #58a6ff; background: rgba(88, 166, 255, 0.05); }
+    .user-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(88, 166, 255, 0.15); color: #58a6ff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; border: 1px solid rgba(88, 166, 255, 0.3); overflow: hidden; }
     .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .user-info { flex: 1; min-width: 0; }
-    .user-info .uname {
-      color: #c9d1d9;
-      font-weight: 600;
-      font-size: 0.9rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .user-info .urole {
-      color: #6e7681;
-      font-size: 0.75rem;
-    }
-    .logout-link {
-      color: #f85149;
-      font-size: 0.9rem;
-      cursor: pointer;
-      text-decoration: none;
-      display: block;
-      text-align: right;
-      margin-top: 2px;
-    }
+    .user-info .uname { color: #c9d1d9; font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-info .urole { color: #6e7681; font-size: 0.75rem; }
+    .logout-link { color: #f85149; font-size: 0.9rem; cursor: pointer; text-decoration: none; display: block; text-align: right; margin-top: 2px; }
     .logout-link:hover { text-decoration: underline; }
-
-    .sidebar-nav {
-      display: flex; flex-direction: column;
-      gap: 6px; flex: 1;
-    }
-    .sidebar-nav a {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 14px; border-radius: 8px;
-      color: #8b949e; text-decoration: none;
-      font-size: 1rem; font-weight: 500;
-      transition: 0.2s; cursor: pointer;
-    }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; color: #8b949e; text-decoration: none; font-size: 1rem; font-weight: 500; transition: 0.2s; cursor: pointer; }
     .sidebar-nav a .nav-icon { width: 20px; text-align: center; font-size: 1.1rem; }
     .sidebar-nav a:hover { background: #21262d; color: #c9d1d9; }
-    .sidebar-nav a.active {
-      background: rgba(88, 166, 255, 0.12);
-      color: #58a6ff;
-      border-left: 3px solid #58a6ff;
-    }
-
-    .sidebar-footer {
-      padding-top: 16px;
-      border-top: 1px solid #21262d;
-      font-size: 0.85rem;
-      color: #6e7681;
-      text-align: center;
-    }
-    .sidebar-footer .icon { color: #58a6ff; margin-right: 6px; }
-
-    /* ---------- ОВЕРЛЕЙ ---------- */
-    .menu-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      opacity: 0; visibility: hidden;
-      transition: 0.3s; z-index: 999;
-    }
+    .sidebar-nav a.active { background: rgba(88, 166, 255, 0.12); color: #58a6ff; border-left: 3px solid #58a6ff; }
+    .sidebar-footer { padding-top: 16px; border-top: 1px solid #21262d; font-size: 0.85rem; color: #6e7681; text-align: center; }
+    .menu-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 999; }
     .menu-overlay.active { opacity: 1; visibility: visible; }
-
-    /* ---------- ВЕРХНЯЯ ПАНЕЛЬ ---------- */
-    .topbar {
-      display: flex; align-items: center; gap: 14px;
-      padding: 14px 20px;
-      background: #161b22;
-      border-bottom: 1px solid #21262d;
-      position: sticky; top: 0; z-index: 100;
-    }
-    .menu-btn {
-      background: none; border: none;
-      color: #c9d1d9; font-size: 1.5rem;
-      cursor: pointer; padding: 4px 10px;
-      border-radius: 6px; transition: 0.2s;
-      line-height: 1;
-    }
+    .topbar { display: flex; align-items: center; gap: 14px; padding: 14px 20px; background: #161b22; border-bottom: 1px solid #21262d; position: sticky; top: 0; z-index: 100; }
+    .menu-btn { background: none; border: none; color: #c9d1d9; font-size: 1.5rem; cursor: pointer; padding: 4px 10px; border-radius: 6px; transition: 0.2s; line-height: 1; }
     .menu-btn:hover { background: #21262d; }
     .topbar-title { font-size: 1.1rem; font-weight: 600; color: #c9d1d9; }
-    .topbar-user {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #8b949e;
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-    .topbar-user .icon { color: #58a6ff; }
-
-    /* ---------- КОНТЕЙНЕР ---------- */
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 28px 20px 40px;
-    }
-
-    /* ---------- СТРАНИЦЫ ---------- */
+    .topbar-user { margin-left: auto; display: flex; align-items: center; gap: 8px; color: #8b949e; font-size: 0.9rem; cursor: pointer; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px 40px; }
     .page { display: none; animation: fadeIn 0.25s ease; }
     .page.active { display: block; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ---------- HERO ---------- */
-    .hero {
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 16px;
-      padding: 40px 28px;
-      text-align: center;
-      margin-bottom: 36px;
-    }
-    .badge {
-      display: inline-block;
-      background: rgba(88, 166, 255, 0.1);
-      padding: 6px 18px; border-radius: 40px;
-      border: 1px solid rgba(88, 166, 255, 0.35);
-      color: #58a6ff; font-weight: 500;
-      letter-spacing: 1px; font-size: 0.85rem;
-      margin-bottom: 20px;
-    }
-    .hero h2 {
-      font-size: 2.6rem; font-weight: 700;
-      letter-spacing: 4px; color: #58a6ff;
-      margin-bottom: 14px;
-    }
-    .hero p {
-      font-size: 1.1rem; color: #8b949e;
-      max-width: 600px; margin: 0 auto 26px;
-    }
-    .btn {
-      display: inline-block;
-      background: #238636; color: #fff;
-      font-weight: 600; padding: 12px 30px;
-      border-radius: 8px; text-decoration: none;
-      transition: 0.2s; border: none;
-      cursor: pointer; font-size: 1rem;
-    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .hero { background: #161b22; border: 1px solid #21262d; border-radius: 16px; padding: 40px 28px; text-align: center; margin-bottom: 36px; }
+    .badge { display: inline-block; background: rgba(88, 166, 255, 0.1); padding: 6px 18px; border-radius: 40px; border: 1px solid rgba(88, 166, 255, 0.35); color: #58a6ff; font-weight: 500; letter-spacing: 1px; font-size: 0.85rem; margin-bottom: 20px; }
+    .hero h2 { font-size: 2.6rem; font-weight: 700; letter-spacing: 4px; color: #58a6ff; margin-bottom: 14px; }
+    .hero p { font-size: 1.1rem; color: #8b949e; max-width: 600px; margin: 0 auto 26px; }
+    .btn { display: inline-block; background: #238636; color: #fff; font-weight: 600; padding: 12px 30px; border-radius: 8px; text-decoration: none; transition: 0.2s; border: none; cursor: pointer; font-size: 1rem; }
     .btn:hover { background: #2ea043; }
     .btn-danger { background: #da3633; }
     .btn-danger:hover { background: #f85149; }
-    .btn-secondary {
-      background: #21262d; color: #c9d1d9;
-      border: 1px solid #30363d;
-    }
+    .btn-secondary { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
     .btn-secondary:hover { background: #30363d; }
-    .btn-tg {
-      background: #0088cc; color: #fff;
-      display: inline-flex; align-items: center; gap: 8px;
-      font-weight: 600; padding: 12px 24px;
-      border-radius: 8px; border: none;
-      cursor: pointer; font-size: 1rem;
-      transition: 0.2s; justify-content: center;
-    }
+    .btn-tg { background: #0088cc; color: #fff; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-size: 1rem; transition: 0.2s; justify-content: center; }
     .btn-tg:hover { background: #0099e6; }
     .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
-
-    /* ---------- ЗАГОЛОВКИ ---------- */
-    .section-title {
-      display: flex; align-items: center; gap: 12px;
-      font-size: 1.5rem; font-weight: 600;
-      margin-bottom: 22px; color: #c9d1d9;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #21262d;
-    }
-    .section-title .icon { color: #58a6ff; font-size: 1.4rem; }
-
-    /* ---------- КАРТОЧКИ ---------- */
-    .news-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 18px;
-    }
-    .news-card {
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 12px;
-      padding: 20px;
-      transition: 0.2s;
-    }
+    .section-title { display: flex; align-items: center; gap: 12px; font-size: 1.5rem; font-weight: 600; margin-bottom: 22px; color: #c9d1d9; padding-bottom: 12px; border-bottom: 1px solid #21262d; }
+    .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+    .news-card { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 20px; transition: 0.2s; }
     .news-card:hover { border-color: #30363d; transform: translateY(-2px); }
-    .news-card h3 {
-      color: #c9d1d9; margin-bottom: 10px;
-      font-size: 1.15rem;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .news-card h3 .icon { color: #58a6ff; }
+    .news-card h3 { color: #c9d1d9; margin-bottom: 10px; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; }
     .news-card p { color: #8b949e; margin-bottom: 14px; font-size: 0.95rem; }
-    .news-date {
-      color: #6e7681; font-size: 0.85rem;
-      display: flex; align-items: center; gap: 6px;
-    }
-
-    /* ---------- ИГРОКИ ---------- */
-    .players-placeholder {
-      background: #161b22;
-      border: 1px dashed #30363d;
-      border-radius: 16px;
-      padding: 40px 24px;
-      text-align: center;
-    }
-    .players-placeholder .big-icon {
-      font-size: 3.5rem; color: #58a6ff;
-      opacity: 0.7; margin-bottom: 18px;
-      display: block;
-    }
+    .news-date { color: #6e7681; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+    .players-placeholder { background: #161b22; border: 1px dashed #30363d; border-radius: 16px; padding: 40px 24px; text-align: center; }
+    .players-placeholder .big-icon { font-size: 3.5rem; color: #58a6ff; opacity: 0.7; margin-bottom: 18px; display: block; }
     .players-placeholder h3 { font-size: 1.4rem; color: #c9d1d9; margin-bottom: 12px; }
     .players-placeholder p { color: #8b949e; max-width: 480px; margin: 0 auto 18px; }
-    .note {
-      display: inline-block;
-      background: rgba(88, 166, 255, 0.08);
-      padding: 6px 18px; border-radius: 40px;
-      font-size: 0.85rem; color: #58a6ff;
-      border: 1px solid rgba(88, 166, 255, 0.3);
-    }
-
-    /* ---------- РОЗЫГРЫШ ---------- */
-    .giveaway-card {
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 16px;
-      padding: 32px;
-      display: flex; flex-wrap: wrap;
-      align-items: center; justify-content: space-between;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
+    .note { display: inline-block; background: rgba(88, 166, 255, 0.08); padding: 6px 18px; border-radius: 40px; font-size: 0.85rem; color: #58a6ff; border: 1px solid rgba(88, 166, 255, 0.3); }
+    .giveaway-card { background: #161b22; border: 1px solid #21262d; border-radius: 16px; padding: 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
     .giveaway-info { flex: 2; min-width: 240px; }
-    .giveaway-info h3 {
-      font-size: 1.6rem; color: #58a6ff;
-      margin-bottom: 10px;
-      display: flex; align-items: center; gap: 10px;
-    }
+    .giveaway-info h3 { font-size: 1.6rem; color: #58a6ff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
     .giveaway-info p { color: #8b949e; font-size: 1rem; margin-bottom: 16px; }
-    .giveaway-meta {
-      display: flex; gap: 20px;
-      flex-wrap: wrap; margin-bottom: 16px;
-    }
-    .giveaway-meta-item {
-      display: flex; align-items: center; gap: 8px;
-      color: #c9d1d9; font-size: 0.95rem;
-      background: #0d1117; padding: 8px 14px;
-      border-radius: 8px; border: 1px solid #21262d;
-    }
-    .giveaway-meta-item .icon { color: #58a6ff; }
+    .giveaway-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+    .giveaway-meta-item { display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 0.95rem; background: #0d1117; padding: 8px 14px; border-radius: 8px; border: 1px solid #21262d; }
     .giveaway-meta-item strong { color: #3fb950; }
-
-    .giveaway-timer {
-      background: #0d1117; padding: 10px 20px;
-      border-radius: 8px; display: inline-block;
-      font-family: monospace; font-size: 1.3rem;
-      font-weight: 700; letter-spacing: 3px;
-      color: #3fb950; border: 1px solid #21262d;
-    }
-    .giveaway-btn {
-      background: #238636; border: none;
-      color: #fff; font-weight: 600;
-      padding: 14px 32px; border-radius: 8px;
-      font-size: 1rem; cursor: pointer;
-      transition: 0.2s; display: flex;
-      align-items: center; gap: 10px;
-      white-space: nowrap;
-    }
+    .giveaway-btn { background: #238636; border: none; color: #fff; font-weight: 600; padding: 14px 32px; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
     .giveaway-btn:hover { background: #2ea043; }
-    .giveaway-btn.done {
-      background: #21262d; color: #3fb950;
-      cursor: default;
-    }
-
-    /* ---------- СПИСОК УЧАСТНИКОВ ---------- */
-    .participants-list {
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .participant-row {
-      background: #161b22; border: 1px solid #21262d;
-      border-radius: 10px; padding: 12px 18px;
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 12px;
-    }
-    .participant-row .name {
-      display: flex; align-items: center; gap: 10px;
-      color: #c9d1d9; font-weight: 500;
-    }
-    .participant-row .name .icon { color: #58a6ff; }
+    .giveaway-btn.done { background: #21262d; color: #3fb950; cursor: default; }
+    .participants-list { display: flex; flex-direction: column; gap: 8px; }
+    .participant-row { background: #161b22; border: 1px solid #21262d; border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .participant-row .name { display: flex; align-items: center; gap: 10px; color: #c9d1d9; font-weight: 500; }
     .participant-row .date { color: #6e7681; font-size: 0.85rem; }
-
-    /* ---------- ЧАТ ---------- */
-    .chat-wrapper {
-      background: #161b22; border: 1px solid #21262d;
-      border-radius: 16px; overflow: hidden;
-      display: flex; flex-direction: column;
-      height: 550px;
-    }
-    .chat-header {
-      padding: 16px 20px; background: #0d1117;
-      border-bottom: 1px solid #21262d;
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 10px;
-      flex-wrap: wrap;
-    }
-    .chat-header h3 {
-      color: #58a6ff; font-size: 1.1rem;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .chat-header-right {
-      display: flex; align-items: center; gap: 14px;
-      flex-wrap: wrap;
-    }
-    .chat-online {
-      display: flex; align-items: center;
-      gap: 6px; font-size: 0.85rem; color: #8b949e;
-    }
-    .online-dot {
-      width: 8px; height: 8px;
-      background: #3fb950; border-radius: 50%;
-      box-shadow: 0 0 8px #3fb950;
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-    .chat-messages {
-      flex: 1; overflow-y: auto;
-      padding: 16px 20px;
-      display: flex; flex-direction: column; gap: 12px;
-    }
-    .chat-message {
-      display: flex; gap: 10px; align-items: flex-start;
-    }
-    .chat-avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: rgba(88, 166, 255, 0.15);
-      color: #58a6ff; display: flex;
-      align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.9rem;
-      flex-shrink: 0;
-      border: 1px solid rgba(88, 166, 255, 0.3);
-      overflow: hidden;
-    }
-    .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .chat-wrapper { background: #161b22; border: 1px solid #21262d; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; height: 550px; }
+    .chat-header { padding: 16px 20px; background: #0d1117; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .chat-header h3 { color: #58a6ff; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+    .chat-header-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .chat-online { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #8b949e; }
+    .online-dot { width: 8px; height: 8px; background: #3fb950; border-radius: 50%; box-shadow: 0 0 8px #3fb950; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .chat-message { display: flex; gap: 10px; align-items: flex-start; }
+    .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(88, 166, 255, 0.15); color: #58a6ff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; border: 1px solid rgba(88, 166, 255, 0.3); overflow: hidden; }
     .chat-body { flex: 1; min-width: 0; }
-    .chat-meta {
-      display: flex; align-items: baseline;
-      gap: 8px; margin-bottom: 2px; flex-wrap: wrap;
-    }
+    .chat-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; flex-wrap: wrap; }
     .chat-name { color: #58a6ff; font-weight: 600; font-size: 0.9rem; }
     .chat-time { color: #6e7681; font-size: 0.75rem; }
-    .chat-text {
-      color: #c9d1d9; font-size: 0.95rem;
-      word-wrap: break-word; overflow-wrap: break-word;
-      white-space: pre-wrap;
-    }
+    .chat-text { color: #c9d1d9; font-size: 0.95rem; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; }
     .chat-message.own .chat-name { color: #3fb950; }
-    .chat-message.own .chat-avatar {
-      background: rgba(63, 185, 80, 0.15);
-      color: #3fb950;
-      border-color: rgba(63, 185, 80, 0.3);
-    }
-    .chat-message.admin .chat-name::after {
-      content: 'ADMIN'; font-size: 0.65rem;
-      background: #da3633; color: #fff;
-      padding: 1px 6px; border-radius: 4px;
-      margin-left: 6px; vertical-align: middle;
-    }
-    .chat-input-area {
-      padding: 12px 16px; background: #0d1117;
-      border-top: 1px solid #21262d;
-      display: flex; gap: 8px; align-items: center;
-      flex-wrap: wrap;
-    }
-    .chat-input-area input {
-      flex: 1; min-width: 150px;
-      background: #161b22; border: 1px solid #30363d;
-      color: #c9d1d9; padding: 10px 14px;
-      border-radius: 8px; font-size: 0.95rem;
-      font-family: inherit;
-    }
+    .chat-message.own .chat-avatar { background: rgba(63, 185, 80, 0.15); color: #3fb950; border-color: rgba(63, 185, 80, 0.3); }
+    .chat-message.admin .chat-name::after { content: 'ADMIN'; font-size: 0.65rem; background: #da3633; color: #fff; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+    .chat-input-area { padding: 12px 16px; background: #0d1117; border-top: 1px solid #21262d; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .chat-input-area input { flex: 1; min-width: 150px; background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 10px 14px; border-radius: 8px; font-size: 0.95rem; font-family: inherit; }
     .chat-input-area input:focus { outline: none; border-color: #58a6ff; }
     .chat-input-area input:disabled { opacity: 0.5; cursor: not-allowed; }
-    .chat-send-btn {
-      background: #238636; border: none;
-      color: #fff; padding: 10px 16px;
-      border-radius: 8px; cursor: pointer;
-      font-size: 1.1rem; transition: 0.2s;
-    }
+    .chat-send-btn { background: #238636; border: none; color: #fff; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
     .chat-send-btn:hover:not(:disabled) { background: #2ea043; }
     .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .chat-notice {
-      padding: 20px; text-align: center;
-      color: #8b949e; font-size: 0.95rem;
-    }
-    .chat-notice .big-icon {
-      font-size: 2rem; color: #58a6ff;
-      margin-bottom: 10px; display: block;
-    }
-    .chat-notice.banned {
-      background: rgba(218, 54, 51, 0.08);
-      border: 1px solid #da3633;
-      border-radius: 10px;
-      margin: 16px;
-      color: #f85149;
-    }
+    .chat-notice { padding: 20px; text-align: center; color: #8b949e; font-size: 0.95rem; }
+    .chat-notice .big-icon { font-size: 2rem; color: #58a6ff; margin-bottom: 10px; display: block; }
+    .chat-notice.banned { background: rgba(218, 54, 51, 0.08); border: 1px solid #da3633; border-radius: 10px; margin: 16px; color: #f85149; }
     .chat-notice.banned .big-icon { color: #f85149; }
-
-    /* ---------- АДМИН ---------- */
-    .admin-login {
-      max-width: 400px; margin: 40px auto;
-      background: #161b22; border: 1px solid #21262d;
-      border-radius: 16px; padding: 32px;
-    }
-    .admin-login h2 {
-      color: #58a6ff; margin-bottom: 20px;
-      text-align: center;
-      display: flex; align-items: center;
-      justify-content: center; gap: 10px;
-    }
+    .admin-login { max-width: 400px; margin: 40px auto; background: #161b22; border: 1px solid #21262d; border-radius: 16px; padding: 32px; }
+    .admin-login h2 { color: #58a6ff; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .admin-login .form-group { margin-bottom: 16px; }
-    .admin-login label {
-      display: block; color: #8b949e;
-      font-size: 0.9rem; margin-bottom: 6px;
-    }
-    .admin-login input {
-      width: 100%; background: #0d1117;
-      border: 1px solid #30363d; color: #c9d1d9;
-      padding: 10px 14px; border-radius: 8px;
-      font-size: 1rem; transition: 0.2s;
-    }
+    .admin-login label { display: block; color: #8b949e; font-size: 0.9rem; margin-bottom: 6px; }
+    .admin-login input { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 10px 14px; border-radius: 8px; font-size: 1rem; transition: 0.2s; }
     .admin-login input:focus { outline: none; border-color: #58a6ff; }
     .admin-login .btn { width: 100%; justify-content: center; }
-
-    .admin-tabs {
-      display: flex; gap: 6px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid #21262d;
-      overflow-x: auto; padding-bottom: 0;
-    }
-    .admin-tab {
-      padding: 12px 20px; background: none;
-      border: none; border-bottom: 2px solid transparent;
-      color: #8b949e; font-size: 0.95rem;
-      font-weight: 500; cursor: pointer;
-      transition: 0.2s; white-space: nowrap;
-      display: flex; align-items: center; gap: 8px;
-    }
+    .admin-tabs { display: flex; gap: 6px; margin-bottom: 24px; border-bottom: 1px solid #21262d; overflow-x: auto; padding-bottom: 0; }
+    .admin-tab { padding: 12px 20px; background: none; border: none; border-bottom: 2px solid transparent; color: #8b949e; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
     .admin-tab:hover { color: #c9d1d9; background: #161b22; }
     .admin-tab.active { color: #58a6ff; border-bottom-color: #58a6ff; }
-    .admin-tab .icon { font-size: 1rem; }
-
     .admin-tab-content { display: none; }
     .admin-tab-content.active { display: block; animation: fadeIn 0.2s ease; }
-
-    .admin-panel {
-      background: #161b22; border: 1px solid #21262d;
-      border-radius: 16px; padding: 24px;
-      margin-bottom: 24px;
-    }
-    .admin-panel h2 {
-      color: #58a6ff; margin-bottom: 20px;
-      display: flex; align-items: center; gap: 10px;
-      font-size: 1.25rem;
-    }
-
-    .form-row {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 14px; margin-bottom: 14px;
-    }
+    .admin-panel { background: #161b22; border: 1px solid #21262d; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .admin-panel h2 { color: #58a6ff; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 1.25rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
     .form-group { margin-bottom: 14px; }
-    .form-group label {
-      display: block; color: #8b949e;
-      font-size: 0.9rem; margin-bottom: 6px;
-    }
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      width: 100%; background: #0d1117;
-      border: 1px solid #30363d; color: #c9d1d9;
-      padding: 10px 14px; border-radius: 8px;
-      font-size: 0.95rem; font-family: inherit;
-      transition: 0.2s; resize: vertical;
-    }
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-      outline: none; border-color: #58a6ff;
-    }
+    .form-group label { display: block; color: #8b949e; font-size: 0.9rem; margin-bottom: 6px; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 10px 14px; border-radius: 8px; font-size: 0.95rem; font-family: inherit; transition: 0.2s; resize: vertical; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #58a6ff; }
     .form-group textarea { min-height: 80px; }
-
-    .form-actions {
-      display: flex; gap: 10px;
-      flex-wrap: wrap; margin-top: 10px;
-    }
-
-    .admin-list {
-      display: flex; flex-direction: column;
-      gap: 10px; margin-top: 20px;
-    }
-    .admin-item {
-      background: #0d1117; border: 1px solid #21262d;
-      border-radius: 10px; padding: 14px 18px;
-      display: flex; justify-content: space-between;
-      align-items: flex-start; gap: 14px;
-      flex-wrap: wrap;
-    }
+    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .admin-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .admin-item { background: #0d1117; border: 1px solid #21262d; border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
     .admin-item-info { flex: 1; min-width: 200px; }
-    .admin-item-info h4 {
-      color: #c9d1d9; font-size: 1rem;
-      margin-bottom: 4px;
-    }
-    .admin-item-info p {
-      color: #8b949e; font-size: 0.9rem;
-      margin-bottom: 6px;
-    }
-    .admin-item-info .meta {
-      color: #6e7681; font-size: 0.8rem;
-      display: flex; gap: 14px; flex-wrap: wrap;
-    }
-    .admin-item-actions {
-      display: flex; gap: 8px;
-      align-items: center; flex-wrap: wrap;
-    }
-    .icon-btn {
-      background: none; border: 1px solid #30363d;
-      color: #8b949e; padding: 8px 12px;
-      border-radius: 6px; cursor: pointer;
-      font-size: 0.9rem; transition: 0.2s;
-      display: inline-flex; align-items: center; gap: 6px;
-    }
+    .admin-item-info h4 { color: #c9d1d9; font-size: 1rem; margin-bottom: 4px; }
+    .admin-item-info p { color: #8b949e; font-size: 0.9rem; margin-bottom: 6px; }
+    .admin-item-info .meta { color: #6e7681; font-size: 0.8rem; display: flex; gap: 14px; flex-wrap: wrap; }
+    .admin-item-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .icon-btn { background: none; border: 1px solid #30363d; color: #8b949e; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
     .icon-btn:hover { background: #21262d; color: #c9d1d9; }
     .icon-btn.edit:hover { border-color: #58a6ff; color: #58a6ff; }
     .icon-btn.delete:hover { border-color: #f85149; color: #f85149; }
     .icon-btn.warn:hover { border-color: #d29922; color: #d29922; }
     .icon-btn.unban:hover { border-color: #3fb950; color: #3fb950; }
-
-    .empty-state {
-      text-align: center; padding: 30px;
-      color: #6e7681; font-style: italic;
-    }
-
-    .toast {
-      position: fixed; bottom: 24px; left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #238636; color: #fff;
-      padding: 12px 24px; border-radius: 8px;
-      font-size: 0.95rem; font-weight: 500;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      opacity: 0; transition: 0.3s; z-index: 2000;
-      max-width: 90%;
-      text-align: center;
-    }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .empty-state { text-align: center; padding: 30px; color: #6e7681; font-style: italic; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #238636; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.5); opacity: 0; transition: 0.3s; z-index: 2000; max-width: 90%; text-align: center; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .toast.error { background: #da3633; }
-
-    /* ---------- АВТОРИЗАЦИЯ ---------- */
-    .auth-page {
-      max-width: 420px; margin: 40px auto;
-      background: #161b22; border: 1px solid #21262d;
-      border-radius: 16px; padding: 32px;
-    }
-    .auth-page h2 {
-      color: #58a6ff; margin-bottom: 8px;
-      text-align: center;
-      display: flex; align-items: center;
-      justify-content: center; gap: 10px;
-    }
-    .auth-page .auth-sub {
-      color: #8b949e; text-align: center;
-      font-size: 0.9rem; margin-bottom: 24px;
-    }
-    #telegram-login-container {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
-      min-height: 50px;
-    }
-    #authStatus {
-      text-align: center;
-      color: #8b949e;
-      font-size: 0.9rem;
-      margin-top: 10px;
-    }
-    .auth-demo-note {
-      background: rgba(88, 166, 255, 0.08);
-      border: 1px solid rgba(88, 166, 255, 0.3);
-      border-radius: 8px; padding: 10px 14px;
-      color: #8b949e; font-size: 0.85rem;
-      margin-top: 16px; text-align: center;
-    }
-    .auth-demo-note strong { color: #58a6ff; }
-    .auth-demo-note code { color: #58a6ff; }
-
-    /* ---------- ПРОФИЛЬ ---------- */
-    .profile-card {
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 16px;
-      padding: 32px;
-      max-width: 600px;
-      margin: 0 auto;
-      text-align: center;
-    }
-    .profile-avatar-big {
-      width: 100px; height: 100px;
-      border-radius: 50%;
-      background: rgba(88, 166, 255, 0.15);
-      color: #58a6ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 2.5rem;
-      margin: 0 auto 16px;
-      border: 2px solid rgba(88, 166, 255, 0.3);
-      overflow: hidden;
-    }
+    .auth-page { max-width: 420px; margin: 40px auto; background: #161b22; border: 1px solid #21262d; border-radius: 16px; padding: 32px; }
+    .auth-page h2 { color: #58a6ff; margin-bottom: 8px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .auth-page .auth-sub { color: #8b949e; text-align: center; font-size: 0.9rem; margin-bottom: 24px; }
+    #telegram-login-container { display: flex; justify-content: center; margin: 20px 0; min-height: 50px; }
+    #authStatus { text-align: center; color: #8b949e; font-size: 0.9rem; margin-top: 10px; }
+    .auth-demo-note { background: rgba(88, 166, 255, 0.08); border: 1px solid rgba(88, 166, 255, 0.3); border-radius: 8px; padding: 10px 14px; color: #8b949e; font-size: 0.85rem; margin-top: 16px; text-align: center; }
+    .profile-card { background: #161b22; border: 1px solid #21262d; border-radius: 16px; padding: 32px; max-width: 600px; margin: 0 auto; text-align: center; }
+    .profile-avatar-big { width: 100px; height: 100px; border-radius: 50%; background: rgba(88, 166, 255, 0.15); color: #58a6ff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 2.5rem; margin: 0 auto 16px; border: 2px solid rgba(88, 166, 255, 0.3); overflow: hidden; }
     .profile-avatar-big img { width: 100%; height: 100%; object-fit: cover; }
-    .profile-name {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #c9d1d9;
-      margin-bottom: 4px;
-    }
-    .profile-tgid {
-      color: #6e7681;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-    }
-    .profile-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    .stat-box {
-      background: #0d1117;
-      border: 1px solid #21262d;
-      border-radius: 10px;
-      padding: 14px;
-    }
-    .stat-box .stat-value {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #58a6ff;
-    }
-    .stat-box .stat-label {
-      font-size: 0.8rem;
-      color: #6e7681;
-    }
-    .profile-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    /* ---------- БЕЙДЖИ ---------- */
-    .ban-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: rgba(218, 54, 51, 0.15);
-      color: #f85149;
-      font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 20px;
-      border: 1px solid rgba(218, 54, 51, 0.4);
-      margin-left: 8px;
-    }
-    .role-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: rgba(88, 166, 255, 0.12);
-      color: #58a6ff;
-      font-size: 0.7rem;
-      padding: 1px 8px;
-      border-radius: 20px;
-      border: 1px solid rgba(88, 166, 255, 0.3);
-      margin-left: 6px;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
+    .profile-name { font-size: 1.8rem; font-weight: 700; color: #c9d1d9; margin-bottom: 4px; }
+    .profile-tgid { color: #6e7681; font-size: 0.9rem; margin-bottom: 20px; }
+    .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-box { background: #0d1117; border: 1px solid #21262d; border-radius: 10px; padding: 14px; }
+    .stat-box .stat-value { font-size: 1.4rem; font-weight: 700; color: #58a6ff; }
+    .stat-box .stat-label { font-size: 0.8rem; color: #6e7681; }
+    .profile-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .ban-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(218, 54, 51, 0.15); color: #f85149; font-size: 0.75rem; padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(218, 54, 51, 0.4); margin-left: 8px; }
+    .role-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(88, 166, 255, 0.12); color: #58a6ff; font-size: 0.7rem; padding: 1px 8px; border-radius: 20px; border: 1px solid rgba(88, 166, 255, 0.3); margin-left: 6px; text-transform: uppercase; font-weight: 600; }
     .role-badge.admin { background: rgba(218, 54, 51, 0.15); color: #f85149; border-color: rgba(218, 54, 51, 0.4); }
-
-    .footer {
-      text-align: center; padding: 24px 20px;
-      border-top: 1px solid #21262d;
-      color: #6e7681; font-size: 0.85rem;
-    }
-    .footer .icon { color: #58a6ff; margin: 0 4px; }
-
-    /* ---------- АДАПТИВ ---------- */
+    .footer { text-align: center; padding: 24px 20px; border-top: 1px solid #21262d; color: #6e7681; font-size: 0.85rem; }
     @media (max-width: 600px) {
       .hero { padding: 30px 18px; }
       .hero h2 { font-size: 2rem; letter-spacing: 3px; }
@@ -812,12 +196,10 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="logo">
-        <span class="icon">✴️</span>
+        <img src="logo.png" alt="NOVA" onerror="this.style.display='none'">
         <h1>NOVA</h1>
       </div>
-      <button class="close-btn" id="closeSidebar" aria-label="Закрыть">
-        ✕
-      </button>
+      <button class="close-btn" id="closeSidebar" aria-label="Закрыть">✕</button>
     </div>
 
     <div class="sidebar-user" id="sidebarUser" style="display:none;" onclick="switchPage('profile')">
@@ -826,9 +208,7 @@
         <div class="uname" id="userName">—</div>
         <div class="urole" id="userRole">Игрок</div>
       </div>
-      <a class="logout-link" id="userLogout" title="Выйти" onclick="event.stopPropagation(); logoutUser();">
-        🚪
-      </a>
+      <a class="logout-link" id="userLogout" title="Выйти" onclick="event.stopPropagation(); logoutUser();">🚪</a>
     </div>
 
     <nav class="sidebar-nav">
@@ -842,17 +222,15 @@
       <a data-page="admin"><span class="nav-icon">⚙️</span> Админ-панель</a>
     </nav>
     <div class="sidebar-footer">
-      <p><span class="icon">🛡️</span> Клан NOVA</p>
+      <p>🛡️ Клан NOVA</p>
     </div>
   </aside>
 
   <header class="topbar">
-    <button class="menu-btn" id="openSidebar" aria-label="Открыть меню">
-      ☰
-    </button>
+    <button class="menu-btn" id="openSidebar" aria-label="Открыть меню">☰</button>
     <div class="topbar-title" id="topbarTitle">Главная</div>
     <div class="topbar-user" onclick="switchPage('profile')">
-      <span class="icon">👤</span>
+      <span>👤</span>
       <span id="topbarUserName">Гость</span>
     </div>
   </header>
@@ -862,16 +240,13 @@
     <!-- ГЛАВНАЯ -->
     <div class="page active" id="page-home">
       <section class="hero">
-        <div class="badge"><span class="icon">⚡</span> ОФИЦИАЛЬНЫЙ САЙТ КЛАНА</div>
+        <div class="badge">⚡ ОФИЦИАЛЬНЫЙ САЙТ КЛАНА</div>
         <h2>NOVA</h2>
         <p>Мы — сообщество, где каждый может проявить себя. Сила в единстве, будущее — в нас.</p>
-        <button class="btn" data-page="giveaway"><span class="icon">🎁</span> Участвовать в розыгрыше</button>
+        <button class="btn" data-page="giveaway">🎁 Участвовать в розыгрыше</button>
       </section>
-
       <section>
-        <div class="section-title">
-          <span class="icon">📅</span> Ближайшие события
-        </div>
+        <div class="section-title">📅 Ближайшие события</div>
         <div class="news-grid" id="homeEvents"></div>
       </section>
     </div>
@@ -879,9 +254,7 @@
     <!-- НОВОСТИ -->
     <div class="page" id="page-news">
       <section>
-        <div class="section-title">
-          <span class="icon">📰</span> Новости и события
-        </div>
+        <div class="section-title">📰 Новости и события</div>
         <div class="news-grid" id="allNews"></div>
       </section>
     </div>
@@ -889,14 +262,12 @@
     <!-- ИГРОКИ -->
     <div class="page" id="page-players">
       <section>
-        <div class="section-title">
-          <span class="icon">👥</span> Наши игроки
-        </div>
+        <div class="section-title">👥 Наши игроки</div>
         <div class="players-placeholder">
           <span class="big-icon">🕵️</span>
           <h3>Список пока пуст</h3>
           <p>Здесь будет отображаться реальный состав клана NOVA. Мы не добавляем фейковых участников — только настоящие бойцы.</p>
-          <span class="note"><span class="icon">🛡️</span> Честный состав</span>
+          <span class="note">🛡️ Честный состав</span>
         </div>
       </section>
     </div>
@@ -904,14 +275,9 @@
     <!-- РОЗЫГРЫШ -->
     <div class="page" id="page-giveaway">
       <section>
-        <div class="section-title">
-          <span class="icon">🎁</span> Розыгрыш
-        </div>
+        <div class="section-title">🎁 Розыгрыш</div>
         <div id="publicGiveaway"></div>
-
-        <div class="section-title" style="margin-top:32px;">
-          <span class="icon">✅</span> Участники
-        </div>
+        <div class="section-title" style="margin-top:32px;">✅ Участники</div>
         <div class="participants-list" id="publicParticipants"></div>
       </section>
     </div>
@@ -919,12 +285,10 @@
     <!-- ЧАТ -->
     <div class="page" id="page-chat">
       <section>
-        <div class="section-title">
-          <span class="icon">💬</span> Общий чат клана
-        </div>
+        <div class="section-title">💬 Общий чат клана</div>
         <div class="chat-wrapper">
           <div class="chat-header">
-            <h3><span class="icon">#</span> general</h3>
+            <h3># general</h3>
             <div class="chat-header-right">
               <div class="chat-online">
                 <span class="online-dot"></span>
@@ -935,9 +299,7 @@
           <div id="chatLoginPrompt" class="chat-notice" style="display:none;">
             <span class="big-icon">🔒</span>
             <p>Чтобы писать в чат, <strong>войдите через Telegram</strong>.</p>
-            <button class="btn btn-tg btn-sm" id="chatLoginBtn" style="margin-top:12px;">
-              <span class="icon">✈️</span> Войти через Telegram
-            </button>
+            <button class="btn btn-tg btn-sm" id="chatLoginBtn" style="margin-top:12px;">✈️ Войти через Telegram</button>
           </div>
           <div id="chatBanNotice" class="chat-notice banned" style="display:none;">
             <span class="big-icon">🚫</span>
@@ -947,9 +309,7 @@
           <div class="chat-messages" id="chatMessages" style="display:none;"></div>
           <div class="chat-input-area" id="chatInputArea" style="display:none;">
             <input type="text" id="chatInput" placeholder="Написать сообщение..." maxlength="500">
-            <button class="chat-send-btn" id="chatSendBtn">
-              ➡️
-            </button>
+            <button class="chat-send-btn" id="chatSendBtn">➡️</button>
           </div>
         </div>
       </section>
@@ -958,9 +318,7 @@
     <!-- ПРОФИЛЬ -->
     <div class="page" id="page-profile">
       <section>
-        <div class="section-title">
-          <span class="icon">👤</span> Мой профиль
-        </div>
+        <div class="section-title">👤 Мой профиль</div>
         <div id="profileContent"></div>
       </section>
     </div>
@@ -968,18 +326,12 @@
     <!-- АВТОРИЗАЦИЯ -->
     <div class="page" id="page-auth">
       <section>
-        <div class="section-title">
-          <span class="icon">🔑</span> Вход / Регистрация
-        </div>
+        <div class="section-title">🔑 Вход / Регистрация</div>
         <div class="auth-page">
-          <h2><span class="icon">✈️</span> Вход через Telegram</h2>
+          <h2>✈️ Вход через Telegram</h2>
           <p class="auth-sub">Нажмите кнопку ниже, чтобы авторизоваться через Telegram.</p>
-
-          <!-- Контейнер для официального виджета Telegram -->
           <div id="telegram-login-container"></div>
-          
           <p id="authStatus"></p>
-
           <div class="auth-demo-note">
             <strong>Важно:</strong> Для работы виджета домен должен быть привязан к боту через <code>/setdomain</code> в @BotFather.
           </div>
@@ -991,12 +343,12 @@
     <div class="page" id="page-admin">
       <div id="adminLoginView">
         <div class="admin-login">
-          <h2><span class="icon">🔒</span> Вход в админ-панель</h2>
+          <h2>🔒 Вход в админ-панель</h2>
           <div class="form-group">
             <label>Пароль</label>
             <input type="password" id="adminPassword" placeholder="Введите пароль">
           </div>
-          <button class="btn" id="loginBtn"><span class="icon">🔑</span> Войти</button>
+          <button class="btn" id="loginBtn">🔑 Войти</button>
           <p style="margin-top: 14px; font-size: 0.85rem; color: #6e7681; text-align: center;">
             Пароль по умолчанию: <code style="color:#58a6ff">nova2025</code>
           </p>
@@ -1005,18 +357,17 @@
 
       <div id="adminPanelView" style="display: none;">
         <div class="admin-tabs">
-          <button class="admin-tab active" data-tab="giveaway"><span class="icon">🎁</span> Розыгрыш</button>
-          <button class="admin-tab" data-tab="participants"><span class="icon">✅</span> Участники</button>
-          <button class="admin-tab" data-tab="news-add"><span class="icon">➕</span> Новость</button>
-          <button class="admin-tab" data-tab="news-list"><span class="icon">📋</span> Список новостей</button>
-          <button class="admin-tab" data-tab="chat-admin"><span class="icon">💬</span> Модерация чата</button>
-          <button class="admin-tab" data-tab="users-admin"><span class="icon">👥</span> Пользователи / Баны</button>
+          <button class="admin-tab active" data-tab="giveaway">🎁 Розыгрыш</button>
+          <button class="admin-tab" data-tab="participants">✅ Участники</button>
+          <button class="admin-tab" data-tab="news-add">➕ Новость</button>
+          <button class="admin-tab" data-tab="news-list">📋 Список новостей</button>
+          <button class="admin-tab" data-tab="chat-admin">💬 Модерация чата</button>
+          <button class="admin-tab" data-tab="users-admin">👥 Пользователи / Баны</button>
         </div>
 
-        <!-- Розыгрыш -->
         <div class="admin-tab-content active" id="tab-giveaway">
           <div class="admin-panel">
-            <h2><span class="icon">🎁</span> Настройки розыгрыша</h2>
+            <h2>🎁 Настройки розыгрыша</h2>
             <form id="giveawayForm">
               <div class="form-row">
                 <div class="form-group">
@@ -1046,19 +397,16 @@
                 </div>
               </div>
               <div class="form-actions">
-                <button type="submit" class="btn"><span class="icon">💾</span> Сохранить розыгрыш</button>
-                <button type="button" class="btn btn-secondary" id="logoutBtn1" style="margin-left:auto;">
-                  <span class="icon">🚪</span> Выйти
-                </button>
+                <button type="submit" class="btn">💾 Сохранить розыгрыш</button>
+                <button type="button" class="btn btn-secondary" id="logoutBtn1" style="margin-left:auto;">🚪 Выйти</button>
               </div>
             </form>
           </div>
         </div>
 
-        <!-- Участники -->
         <div class="admin-tab-content" id="tab-participants">
           <div class="admin-panel">
-            <h2><span class="icon">✅</span> Участники розыгрыша</h2>
+            <h2>✅ Участники розыгрыша</h2>
             <form id="participantForm">
               <div class="form-row">
                 <div class="form-group">
@@ -1067,7 +415,7 @@
                 </div>
                 <div class="form-group">
                   <label>&nbsp;</label>
-                  <button type="submit" class="btn" style="width:100%;"><span class="icon">➕</span> Добавить</button>
+                  <button type="submit" class="btn" style="width:100%;">➕ Добавить</button>
                 </div>
               </div>
             </form>
@@ -1075,10 +423,9 @@
           </div>
         </div>
 
-        <!-- Новость -->
         <div class="admin-tab-content" id="tab-news-add">
           <div class="admin-panel">
-            <h2><span class="icon">➕</span> <span id="newsFormTitle">Добавить новость</span></h2>
+            <h2>➕ <span id="newsFormTitle">Добавить новость</span></h2>
             <form id="newsForm">
               <input type="hidden" id="editId" value="">
               <div class="form-row">
@@ -1120,46 +467,37 @@
                 <textarea id="newsText" required placeholder="Краткое описание события..."></textarea>
               </div>
               <div class="form-actions">
-                <button type="submit" class="btn" id="newsSubmitBtn"><span class="icon">💾</span> Сохранить</button>
-                <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display:none;">
-                  <span class="icon">✖️</span> Отмена
-                </button>
+                <button type="submit" class="btn" id="newsSubmitBtn">💾 Сохранить</button>
+                <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display:none;">✖️ Отмена</button>
               </div>
             </form>
           </div>
         </div>
 
-        <!-- Список новостей -->
         <div class="admin-tab-content" id="tab-news-list">
           <div class="admin-panel">
-            <h2><span class="icon">📋</span> Все новости</h2>
+            <h2>📋 Все новости</h2>
             <div class="admin-list" id="adminList"></div>
           </div>
         </div>
 
-        <!-- Модерация чата -->
         <div class="admin-tab-content" id="tab-chat-admin">
           <div class="admin-panel">
-            <h2><span class="icon">💬</span> Модерация чата</h2>
+            <h2>💬 Модерация чата</h2>
             <p style="color:#8b949e;font-size:0.9rem;margin-bottom:16px;">
               Всего сообщений: <strong id="chatTotalCount" style="color:#58a6ff;">0</strong>
             </p>
             <div class="form-actions" style="margin-bottom:16px;">
-              <button type="button" class="btn btn-danger" id="chatClearBtn">
-                <span class="icon">🗑️</span> Очистить весь чат
-              </button>
-              <button type="button" class="btn btn-secondary" id="logoutBtn2" style="margin-left:auto;">
-                <span class="icon">🚪</span> Выйти
-              </button>
+              <button type="button" class="btn btn-danger" id="chatClearBtn">🗑️ Очистить весь чат</button>
+              <button type="button" class="btn btn-secondary" id="logoutBtn2" style="margin-left:auto;">🚪 Выйти</button>
             </div>
             <div class="admin-list" id="adminChatList"></div>
           </div>
         </div>
 
-        <!-- Пользователи / Баны -->
         <div class="admin-tab-content" id="tab-users-admin">
           <div class="admin-panel">
-            <h2><span class="icon">👥</span> Управление пользователями</h2>
+            <h2>👥 Управление пользователями</h2>
             <p style="color:#8b949e;font-size:0.9rem;margin-bottom:16px;">
               Всего пользователей: <strong id="adminUsersCount" style="color:#58a6ff;">0</strong>
             </p>
@@ -1167,7 +505,7 @@
           </div>
 
           <div class="admin-panel">
-            <h2><span class="icon">⏰</span> Авто-бан за неактивность</h2>
+            <h2>⏰ Авто-бан за неактивность</h2>
             <p style="color:#8b949e;font-size:0.9rem;margin-bottom:16px;">
               Автоматически банит пользователей, которые не заходили на сайт дольше указанного срока.
             </p>
@@ -1181,9 +519,7 @@
               </div>
               <div class="form-group">
                 <label>&nbsp;</label>
-                <button type="button" class="btn btn-danger" id="applyAutoBanBtn" style="width:100%;">
-                  <span class="icon">⚖️</span> Применить авто-бан
-                </button>
+                <button type="button" class="btn btn-danger" id="applyAutoBanBtn" style="width:100%;">⚖️ Применить авто-бан</button>
               </div>
             </div>
             <div class="form-group">
@@ -1193,7 +529,7 @@
           </div>
 
           <div class="admin-panel">
-            <h2><span class="icon">🚫</span> Ручной бан пользователя</h2>
+            <h2>🚫 Ручной бан пользователя</h2>
             <form id="manualBanForm">
               <div class="form-row">
                 <div class="form-group">
@@ -1206,7 +542,7 @@
                 </div>
               </div>
               <div class="form-actions">
-                <button type="submit" class="btn btn-danger"><span class="icon">⚖️</span> Забанить</button>
+                <button type="submit" class="btn btn-danger">⚖️ Забанить</button>
               </div>
             </form>
           </div>
@@ -1217,101 +553,59 @@
   </div>
 
   <footer class="footer">
-    <p><span class="icon">⭐</span> Клан NOVA — вместе мы сила <span class="icon">⭐</span></p>
+    <p>⭐ Клан NOVA — вместе мы сила ⭐</p>
     <p style="margin-top: 8px; font-size: 0.8rem;">© 2025 NOVA. Все права защищены.</p>
   </footer>
 
   <div class="toast" id="toast"></div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <script>
     (function() {
       // ============================================
-      // ⚠️ НАСТРОЙКА TELEGRAM БОТА ⚠️
-      // Впиши сюда username своего бота (без @)
+      // НАСТРОЙКИ
       // ============================================
-      const BOT_USERNAME = 'Vitaliy4635BOT'; 
+      const BOT_USERNAME = 'Vitaliy4635BOT'; // Замени на ник своего бота
+      const ADMIN_PASSWORD = 'nova2025';
 
-      // ============================================
-      // 1. ДАННЫЕ
-      // ============================================
-      const DEFAULT_NEWS = [
-        { id: '1', title: 'Клановая битва', text: 'Турнир между топ-кланами. Покажи, на что способна NOVA!', date: '25 мая 2025', icon: '🏆', featured: true },
-        { id: '2', title: 'Набор новичков', text: 'Открыт набор активных игроков. Присоединяйся к семье NOVA.', date: '1 июня 2025', icon: '👥', featured: true },
-        { id: '3', title: 'Розыгрыш скинов', text: 'Среди участников клана разыгрываем ценные призы. Успей принять участие!', date: '10 июня 2025', icon: '💎', featured: true },
-        { id: '4', title: 'Обновление сайта', text: 'Мы перезапустили сайт клана с новым дизайном и удобной навигацией. Добро пожаловать!', date: '15 мая 2025', icon: '🔧', featured: false },
-        { id: '5', title: 'Союз с кланом APEX', text: 'Заключён союз с кланом APEX. Вместе мы станем ещё сильнее в межклановых сражениях.', date: '8 мая 2025', icon: '🤝', featured: false },
-        { id: '6', title: 'Итоги сезона', text: 'NOVA вошла в топ-10 кланов сезона. Спасибо каждому участнику за вклад в общее дело!', date: '1 мая 2025', icon: '🏅', featured: false }
-      ];
-
-      const DEFAULT_GIVEAWAY = {
-        title: 'Скин «Дракон»',
-        text: 'Разыгрываем редкий скин «Дракон» среди участников клана. Успей принять участие!',
-        winners: 1,
-        end: '10 июня 2025',
-        status: 'active'
+      // ТВОЙ КОНФИГ FIREBASE
+      const firebaseConfig = {
+        apiKey: "AIzaSyD7dDwzJgTz-jJJmrntoZmfcTk9nDx2Zls",
+        authDomain: "nova-clan-91b20.firebaseapp.com",
+        databaseURL: "https://nova-clan-91b20-default-rtdb.firebaseio.com/",
+        projectId: "nova-clan-91b20",
+        storageBucket: "nova-clan-91b20.firebasestorage.app",
+        messagingSenderId: "8496614691",
+        appId: "1:8496614691:web:c7afd812985ec8499a9096",
+        measurementId: "G-6LB9MGCQH4"
       };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
 
       const STORAGE = {
         NEWS: 'nova_news_v1',
         GIVEAWAY: 'nova_giveaway_v1',
         PARTICIPANTS: 'nova_participants_v1',
-        CHAT: 'nova_chat_v1',
         ADMIN: 'nova_admin_logged',
-        USER_PARTICIPATED: 'nova_user_participated',
         USERS: 'nova_users_v1',
         CURRENT_USER: 'nova_current_user',
         AUTO_BAN_SETTINGS: 'nova_autoban_settings'
       };
-      const ADMIN_PASSWORD = 'nova2025';
 
       // ============================================
-      // 2. ОСКОРБИТЕЛЬНЫЕ СЛОВА
+      // АНТИСПАМ
       // ============================================
-      const BAD_WORDS = [
-        'дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок',
-        'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество',
-        'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный'
-      ];
-
-      // ============================================
-      // 3. МОЩНЫЙ АНТИСПАМ
-      // ============================================
-      const BLOCKED_DOMAINS = [
-        'vk.com', 'vk.ru', 'vkontakte', 'ok.ru', 'odnoklassniki',
-        't.me', 'telegram.me', 'telegram.org', 'whatsapp', 'wa.me',
-        'youtube.com', 'youtu.be', 'instagram.com', 'insta', 'facebook.com', 'fb.com',
-        'tiktok.com', 'twitter.com', 'x.com', 'discord.gg', 'discord.com',
-        'twitch.tv', 'rutube.ru', 'dzen.ru', 'zen.yandex',
-        'yandex.ru', 'google.com', 'google.ru', 'gmail.com',
-        'mail.ru', 'rambler.ru', 'yahoo.com',
-        'avito.ru', 'ozon.ru', 'wildberries.ru', 'aliexpress',
-        'steamcommunity.com', 'steampowered.com', 'epicgames.com',
-        'roblox.com', 'minecraft.net', 'brawl-stars', 'clashroyale',
-        'donate', 'donation', 'qiwi', 'webmoney', 'yoomoney', 'paypal',
-        'casino', 'kazino', 'казино', 'ставки', 'букмекер', '1xbet', 'betwinner',
-        'crypto', 'bitcoin', 'binance', 'usdt', 'eth', 'btc',
-        'free-money', 'халява', 'заработок', 'подработка'
-      ];
-
-      const BLOCKED_WORDS_IN_TEXT = [
-        'купи', 'продам', 'продаю', 'продажа', 'скидк', 'бесплатно', 'халяв',
-        'заработ', 'подработ', 'казин', 'ставк', 'букмекер', 'крипт',
-        'биткоин', 'биткойн', 'донат', 'инвестиц', 'пассивный доход',
-        'перейди по ссылке', 'переходи по ссылке', 'жми на ссылку', 'жми сюда',
-        'подпишись', 'подписывайся', 'подписка', 'реклама', 'рекламк',
-        'розыгрыш призов', 'розыгрыш денег', 'халявные', 'бесплатные скины',
-        'промокод', 'промо-код', 'промо код', 'взлом', 'взломать',
-        'читы', 'читер', 'чит на', 'бесплатный чит'
-      ];
+      const BAD_WORDS = ['дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок', 'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество', 'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный'];
+      const BLOCKED_WORDS_IN_TEXT = ['купи', 'продам', 'продаю', 'продажа', 'скидк', 'бесплатно', 'халяв', 'заработ', 'подработ', 'казин', 'ставк', 'букмекер', 'крипт', 'биткоин', 'биткойн', 'донат', 'инвестиц', 'пассивный доход', 'перейди по ссылке', 'переходи по ссылке', 'жми на ссылку', 'жми сюда', 'подпишись', 'подписывайся', 'подписка', 'реклама', 'рекламк', 'розыгрыш призов', 'розыгрыш денег', 'халявные', 'бесплатные скины', 'промокод', 'промо-код', 'промо код', 'взлом', 'взломать', 'читы', 'читер', 'чит на', 'бесплатный чит'];
+      const BLOCKED_DOMAINS = ['vk.com', 'vk.ru', 'vkontakte', 'ok.ru', 'odnoklassniki', 't.me', 'telegram.me', 'telegram.org', 'whatsapp', 'wa.me', 'youtube.com', 'youtu.be', 'instagram.com', 'insta', 'facebook.com', 'fb.com', 'tiktok.com', 'twitter.com', 'x.com', 'discord.gg', 'discord.com', 'twitch.tv', 'rutube.ru', 'dzen.ru', 'zen.yandex', 'yandex.ru', 'google.com', 'google.ru', 'gmail.com', 'mail.ru', 'rambler.ru', 'yahoo.com', 'avito.ru', 'ozon.ru', 'wildberries.ru', 'aliexpress', 'steamcommunity.com', 'steampowered.com', 'epicgames.com', 'roblox.com', 'minecraft.net', 'brawl-stars', 'clashroyale', 'donate', 'donation', 'qiwi', 'webmoney', 'yoomoney', 'paypal', 'casino', 'kazino', 'казино', 'ставки', 'букмекер', '1xbet', 'betwinner', 'crypto', 'bitcoin', 'binance', 'usdt', 'eth', 'btc', 'free-money', 'халява', 'заработок', 'подработка'];
 
       function normalizeText(text) {
         if (!text) return '';
         let t = String(text).toLowerCase();
-        const cyrToLat = {
-          'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y',
-          'х': 'x', 'к': 'k', 'м': 'm', 'н': 'h', 'в': 'b', 'т': 't',
-          'і': 'i', 'ї': 'i', 'є': 'e', 'ґ': 'g'
-        };
+        const cyrToLat = { 'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x', 'к': 'k', 'м': 'm', 'н': 'h', 'в': 'b', 'т': 't', 'і': 'i', 'ї': 'i', 'є': 'e', 'ґ': 'g' };
         t = t.replace(/[аеорсухкмнвтіїєґ]/g, ch => cyrToLat[ch] || ch);
         t = t.replace(/\s+/g, '');
         t = t.replace(/\[\.\]|\(\.\)|\{\.\}|\[dot\]|\(dot\)/gi, '.');
@@ -1327,33 +621,16 @@
 
       function containsLink(text) {
         if (!text) return false;
-        const rawPatterns = [
-          /https?/i, /hxxp/i, /www\./i, /:\/\//,
-          /\.(com|ru|net|org|io|me|tv|gg|xyz|top|site|online|club|info|biz|pro|app|dev|co|uk|de|fr|us|kz|by|ua)/i,
-          /t\.me/i, /vk\.com|vk\.ru/i,
-          /@[a-z0-9_]{3,}/i,
-          /[a-z0-9-]+\.(com|ru|net|org|io|me|tv|gg)/i
-        ];
+        const rawPatterns = [/https?/i, /hxxp/i, /www\./i, /:\/\//, /\.(com|ru|net|org|io|me|tv|gg|xyz|top|site|online|club|info|biz|pro|app|dev|co|uk|de|fr|us|kz|by|ua)/i, /t\.me/i, /vk\.com|vk\.ru/i, /@[a-z0-9_]{3,}/i, /[a-z0-9-]+\.(com|ru|net|org|io|me|tv|gg)/i];
         if (rawPatterns.some(re => re.test(text))) return true;
-
         const norm = normalizeText(text);
         if (/https?:|hxxp:|ftps?:/i.test(norm)) return true;
         if (/[a-z0-9-]+\.(com|ru|net|org|io|me|tv|gg|xyz|top|site|online|club|info|biz|pro|app|dev|co|uk|de|fr|us|kz|by|ua)/i.test(norm)) return true;
-
-        const blockedDomainNames = ['vk', 'vkontakte', 'ok', 'odnoklassniki', 't', 'telegram', 'whatsapp', 'wa',
-          'youtube', 'youtu', 'instagram', 'insta', 'facebook', 'fb', 'tiktok', 'twitter', 'x',
-          'discord', 'twitch', 'rutube', 'dzen', 'zen', 'yandex', 'google', 'gmail',
-          'mail', 'rambler', 'yahoo', 'avito', 'ozon', 'wildberries', 'aliexpress',
-          'steamcommunity', 'steampowered', 'epicgames', 'roblox', 'minecraft',
-          'brawl', 'clashroyale', 'donate', 'qiwi', 'webmoney', 'yoomoney', 'paypal',
-          'casino', 'kazino', 'казино', '1xbet', 'betwinner', 'binance',
-          'crypto', 'bitcoin', 'usdt'];
-
+        const blockedDomainNames = ['vk', 'vkontakte', 'ok', 'odnoklassniki', 't', 'telegram', 'whatsapp', 'wa', 'youtube', 'youtu', 'instagram', 'insta', 'facebook', 'fb', 'tiktok', 'twitter', 'x', 'discord', 'twitch', 'rutube', 'dzen', 'zen', 'yandex', 'google', 'gmail', 'mail', 'rambler', 'yahoo', 'avito', 'ozon', 'wildberries', 'aliexpress', 'steamcommunity', 'steampowered', 'epicgames', 'roblox', 'minecraft', 'brawl', 'clashroyale', 'donate', 'qiwi', 'webmoney', 'yoomoney', 'paypal', 'casino', 'kazino', 'казино', '1xbet', 'betwinner', 'binance', 'crypto', 'bitcoin', 'usdt'];
         for (const name of blockedDomainNames) {
           const re = new RegExp(name + '[./:@\\-_]', 'i');
           if (re.test(norm)) return true;
         }
-
         for (const dom of BLOCKED_DOMAINS) {
           if (norm.includes(dom)) return true;
         }
@@ -1383,52 +660,37 @@
         return { ok: true, reason: '' };
       }
 
-      const MESSAGE_COOLDOWN_MS = 3000;
-      const SAME_TEXT_WINDOW_MS = 60000;
-
       // ============================================
-      // 4. ХРАНИЛИЩЕ
+      // ХРАНИЛИЩЕ И ДАННЫЕ
       // ============================================
       function loadJSON(key, fallback) {
-        try {
-          const raw = localStorage.getItem(key);
-          if (raw) return JSON.parse(raw);
-        } catch (e) {}
+        try { const raw = localStorage.getItem(key); if (raw) return JSON.parse(raw); } catch (e) {}
         return typeof fallback === 'function' ? fallback() : JSON.parse(JSON.stringify(fallback));
       }
-      function saveJSON(key, val) {
-        try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
-      }
+      function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
 
-      let newsList = loadJSON(STORAGE.NEWS, DEFAULT_NEWS);
-      let giveaway = loadJSON(STORAGE.GIVEAWAY, DEFAULT_GIVEAWAY);
+      let newsList = loadJSON(STORAGE.NEWS, []);
+      let giveaway = loadJSON(STORAGE.GIVEAWAY, { title: 'Скин «Дракон»', text: 'Разыгрываем редкий скин.', winners: 1, end: '10 июня 2025', status: 'active' });
       let participants = loadJSON(STORAGE.PARTICIPANTS, []);
-      let chatMessages = loadJSON(STORAGE.CHAT, []);
+      let chatMessages = [];
       let users = loadJSON(STORAGE.USERS, []);
       let autoBanSettings = loadJSON(STORAGE.AUTO_BAN_SETTINGS, { thresholdDays: 30 });
       let currentUser = loadJSON(STORAGE.CURRENT_USER, null);
 
       // ============================================
-      // 5. ПОЛЬЗОВАТЕЛИ
+      // ПОЛЬЗОВАТЕЛИ
       // ============================================
       function findUser(nameOrTgId) {
         if (!nameOrTgId) return null;
         const q = String(nameOrTgId).trim().toLowerCase();
-        return users.find(u =>
-          String(u.name || '').toLowerCase() === q ||
-          String(u.tgId || '') === q
-        );
+        return users.find(u => String(u.name || '').toLowerCase() === q || String(u.tgId || '') === q);
       }
       function findUserById(id) { return users.find(u => u.id === id); }
-
       function isBanned(user) {
         if (!user || !user.banned) return false;
         if (user.banUntil && new Date(user.banUntil) < new Date()) {
-          user.banned = false;
-          user.banReason = '';
-          user.banUntil = null;
-          saveJSON(STORAGE.USERS, users);
-          return false;
+          user.banned = false; user.banReason = ''; user.banUntil = null;
+          saveUsers(); return false;
         }
         return true;
       }
@@ -1439,35 +701,24 @@
         if (!user) {
           user = {
             id: 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-            name: name, tgId: tgId || '',
-            role: 'player',
-            createdAt: new Date().toISOString(),
-            lastVisit: new Date().toISOString(),
-            banned: false, banReason: '', banUntil: null,
-            coins: 100,
-            avatar: ''
+            name: name, tgId: tgId || '', role: 'player',
+            createdAt: new Date().toISOString(), lastVisit: new Date().toISOString(),
+            banned: false, banReason: '', banUntil: null, coins: 100, avatar: ''
           };
-          users.push(user);
-          saveUsers();
+          users.push(user); saveUsers();
         } else {
-          user.lastVisit = new Date().toISOString();
-          saveUsers();
+          user.lastVisit = new Date().toISOString(); saveUsers();
         }
-        currentUser = user;
-        saveJSON(STORAGE.CURRENT_USER, currentUser);
+        currentUser = user; saveJSON(STORAGE.CURRENT_USER, currentUser);
         return user;
       }
-
       function logoutUser() {
-        currentUser = null;
-        localStorage.removeItem(STORAGE.CURRENT_USER);
-        updateUIForUser();
-        showToast('Вы вышли из аккаунта');
-        switchPage('home');
+        currentUser = null; localStorage.removeItem(STORAGE.CURRENT_USER);
+        updateUIForUser(); showToast('Вы вышли из аккаунта'); switchPage('home');
       }
 
       // ============================================
-      // 6. ЭЛЕМЕНТЫ
+      // ЭЛЕМЕНТЫ
       // ============================================
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('menuOverlay');
@@ -1477,30 +728,17 @@
       const navLinks = document.querySelectorAll('.sidebar-nav a');
       const toast = document.getElementById('toast');
 
-      const titles = {
-        home: 'Главная', news: 'Новости', players: 'Игроки',
-        giveaway: 'Розыгрыш', chat: 'Чат', admin: 'Админ-панель',
-        auth: 'Вход / Регистрация', profile: 'Профиль'
-      };
+      const titles = { home: 'Главная', news: 'Новости', players: 'Игроки', giveaway: 'Розыгрыш', chat: 'Чат', admin: 'Админ-панель', auth: 'Вход / Регистрация', profile: 'Профиль' };
 
       // ============================================
-      // 7. МЕНЮ
+      // МЕНЮ И НАВИГАЦИЯ
       // ============================================
-      function openMenu() {
-        sidebar.classList.add('open');
-        overlay.classList.add('active');
-      }
-      function closeMenu() {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-      }
+      function openMenu() { sidebar.classList.add('open'); overlay.classList.add('active'); }
+      function closeMenu() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
       openBtn.addEventListener('click', openMenu);
       closeBtn.addEventListener('click', closeMenu);
       overlay.addEventListener('click', closeMenu);
 
-      // ============================================
-      // 8. ТОСТ
-      // ============================================
       let toastTimer = null;
       function showToast(msg, isError) {
         toast.textContent = msg;
@@ -1510,22 +748,14 @@
         toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
       }
 
-      // ============================================
-      // 9. НАВИГАЦИЯ
-      // ============================================
       function switchPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         const target = document.getElementById('page-' + pageId);
         if (target) target.classList.add('active');
-
-        navLinks.forEach(link => {
-          link.classList.toggle('active', link.dataset.page === pageId);
-        });
-
+        navLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
         topbarTitle.textContent = titles[pageId] || 'NOVA';
         closeMenu();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-
         if (pageId === 'admin') updateAdminView();
         if (pageId === 'giveaway') renderPublicGiveaway();
         if (pageId === 'chat') renderChat();
@@ -1533,257 +763,154 @@
       }
 
       navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          switchPage(link.dataset.page);
-        });
+        link.addEventListener('click', (e) => { e.preventDefault(); switchPage(link.dataset.page); });
       });
-
       document.querySelectorAll('[data-page]').forEach(el => {
         if (el.tagName === 'A' || el.classList.contains('btn')) {
-          el.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchPage(el.dataset.page);
-          });
+          el.addEventListener('click', (e) => { e.preventDefault(); switchPage(el.dataset.page); });
         }
       });
 
-      // ============================================
-      // 10. УТИЛИТЫ
-      // ============================================
       function escapeHtml(str) {
-        return String(str).replace(/[&<>"']/g, ch => ({
-          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[ch]));
+        return String(str).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
       }
 
       // ============================================
-      // 11. НОВОСТИ
+      // НОВОСТИ (Firebase)
       // ============================================
       function renderNewsCard(item) {
-        return `
-          <div class="news-card">
-            <h3><span class="icon">${escapeHtml(item.icon)}</span> ${escapeHtml(item.title)}</h3>
-            <p>${escapeHtml(item.text)}</p>
-            <div class="news-date"><span class="icon">📅</span> ${escapeHtml(item.date)}</div>
-          </div>
-        `;
+        return `<div class="news-card"><h3>${escapeHtml(item.icon)} ${escapeHtml(item.title)}</h3><p>${escapeHtml(item.text)}</p><div class="news-date">📅 ${escapeHtml(item.date)}</div></div>`;
       }
 
       function renderPublicNews() {
-        const homeEl = document.getElementById('homeEvents');
-        const featured = newsList.filter(n => n.featured);
-        homeEl.innerHTML = featured.length
-          ? featured.map(renderNewsCard).join('')
-          : '<div class="empty-state">Пока нет ближайших событий</div>';
-
-        const allEl = document.getElementById('allNews');
-        allEl.innerHTML = newsList.length
-          ? newsList.map(renderNewsCard).join('')
-          : '<div class="empty-state">Пока нет новостей</div>';
+        db.ref('news').on('value', (snapshot) => {
+          const data = snapshot.val();
+          newsList = data ? Object.values(data) : [];
+          const homeEl = document.getElementById('homeEvents');
+          const featured = newsList.filter(n => n.featured);
+          homeEl.innerHTML = featured.length ? featured.map(renderNewsCard).join('') : '<div class="empty-state">Пока нет ближайших событий</div>';
+          const allEl = document.getElementById('allNews');
+          allEl.innerHTML = newsList.length ? newsList.map(renderNewsCard).join('') : '<div class="empty-state">Пока нет новостей</div>';
+        });
       }
 
       // ============================================
-      // 12. РОЗЫГРЫШ
+      // РОЗЫГРЫШ (Firebase)
       // ============================================
       function renderPublicGiveaway() {
         const container = document.getElementById('publicGiveaway');
         const participantsEl = document.getElementById('publicParticipants');
-        const isClosed = giveaway.status === 'closed';
-        const userParticipated = localStorage.getItem(STORAGE.USER_PARTICIPATED) === '1';
 
-        container.innerHTML = `
-          <div class="giveaway-card">
-            <div class="giveaway-info">
-              <h3><span class="icon">👑</span> ${escapeHtml(giveaway.title)}</h3>
-              <p>${escapeHtml(giveaway.text)}</p>
-              <div class="giveaway-meta">
-                <div class="giveaway-meta-item">
-                  <span class="icon">🏆</span> Победителей: <strong>${giveaway.winners}</strong>
+        db.ref('giveaway').on('value', (snapshot) => {
+          const data = snapshot.val();
+          if (data) giveaway = data;
+          const isClosed = giveaway.status === 'closed';
+          const userParticipated = localStorage.getItem('nova_user_participated') === '1';
+          
+          container.innerHTML = `
+            <div class="giveaway-card">
+              <div class="giveaway-info">
+                <h3>👑 ${escapeHtml(giveaway.title)}</h3>
+                <p>${escapeHtml(giveaway.text)}</p>
+                <div class="giveaway-meta">
+                  <div class="giveaway-meta-item">🏆 Победителей: <strong>${giveaway.winners}</strong></div>
+                  ${giveaway.end ? `<div class="giveaway-meta-item">📅 До: <strong>${escapeHtml(giveaway.end)}</strong></div>` : ''}
+                  <div class="giveaway-meta-item">✅ Участников: <strong>${participants.length}</strong></div>
+                  ${isClosed ? `<div class="giveaway-meta-item" style="border-color:#da3633;"><span style="color:#f85149;">🔒 Завершён</span></div>` : ''}
                 </div>
-                ${giveaway.end ? `<div class="giveaway-meta-item"><span class="icon">📅</span> До: <strong>${escapeHtml(giveaway.end)}</strong></div>` : ''}
-                <div class="giveaway-meta-item">
-                  <span class="icon">✅</span> Участников: <strong>${participants.length}</strong>
-                </div>
-                ${isClosed ? `<div class="giveaway-meta-item" style="border-color:#da3633;"><span class="icon" style="color:#f85149;">🔒</span> <span style="color:#f85149;">Завершён</span></div>` : ''}
               </div>
-              ${!isClosed ? `<div class="giveaway-timer" id="timer">⏳ -- : -- : --</div>` : ''}
+              ${!isClosed ? `
+                <button class="giveaway-btn ${userParticipated ? 'done' : ''}" id="participateBtn" ${userParticipated ? 'disabled' : ''}>
+                  ${userParticipated ? '✅ Вы участвуете!' : '👆 Участвовать'}
+                </button>
+              ` : `<div style="text-align:center;color:#8b949e;">🏁 Розыгрыш завершён</div>`}
             </div>
-            ${!isClosed ? `
-              <button class="giveaway-btn ${userParticipated ? 'done' : ''}" id="participateBtn" ${userParticipated ? 'disabled' : ''}>
-                <span class="icon">${userParticipated ? '✅' : '👆'}</span>
-                ${userParticipated ? 'Вы участвуете!' : 'Участвовать'}
-              </button>
-            ` : `
-              <div style="text-align:center;color:#8b949e;">
-                <span class="icon" style="font-size:2rem;color:#6e7681;margin-bottom:8px;display:block;">🏁</span>
-                Розыгрыш завершён
-              </div>
-            `}
-          </div>
-        `;
-
-        if (participants.length) {
-          participantsEl.innerHTML = participants.map(p => `
-            <div class="participant-row">
-              <div class="name"><span class="icon">👤</span> ${escapeHtml(p.name)}</div>
-              <div class="date">${escapeHtml(p.date || '')}</div>
-            </div>
-          `).join('');
-        } else {
-          participantsEl.innerHTML = '<div class="empty-state">Пока никто не участвует. Будь первым!</div>';
-        }
-
-        const btn = document.getElementById('participateBtn');
-        if (btn && !isClosed) {
-          btn.addEventListener('click', () => {
-            if (!currentUser) {
-              showToast('Войдите, чтобы участвовать', true);
-              switchPage('auth');
-              return;
-            }
-            if (isBanned(currentUser)) {
-              showToast('Вы забанены и не можете участвовать', true);
-              return;
-            }
-            if (localStorage.getItem(STORAGE.USER_PARTICIPATED) === '1') {
-              showToast('Вы уже участвуете', true);
-              return;
-            }
-            participants.push({
-              id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-              name: currentUser.name,
-              date: new Date().toLocaleDateString('ru-RU')
+          `;
+          
+          const btn = document.getElementById('participateBtn');
+          if (btn && !isClosed) {
+            btn.addEventListener('click', () => {
+              if (!currentUser) { showToast('Войдите, чтобы участвовать', true); switchPage('auth'); return; }
+              if (isBanned(currentUser)) { showToast('Вы забанены', true); return; }
+              if (localStorage.getItem('nova_user_participated') === '1') { showToast('Вы уже участвуете', true); return; }
+              
+              db.ref('participants').push({
+                name: currentUser.name,
+                date: new Date().toLocaleDateString('ru-RU')
+              });
+              localStorage.setItem('nova_user_participated', '1');
+              showToast('Вы зарегистрированы!');
             });
-            saveJSON(STORAGE.PARTICIPANTS, participants);
-            localStorage.setItem(STORAGE.USER_PARTICIPATED, '1');
-            renderPublicGiveaway();
-            if (isAdminLogged()) renderAdminParticipants();
-            showToast('Вы зарегистрированы!');
-          });
-        }
+          }
+        });
 
-        const timerEl = document.getElementById('timer');
-        if (timerEl && !isClosed) {
-          let totalSeconds = (14 * 3600) + (32 * 60) + 9;
-          const tick = () => {
-            if (totalSeconds <= 0) {
-              timerEl.innerHTML = '⌛ 00 : 00 : 00';
-              return;
-            }
-            totalSeconds--;
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const s = totalSeconds % 60;
-            timerEl.innerHTML = '⏳ ' +
-              String(h).padStart(2, '0') + ' : ' +
-              String(m).padStart(2, '0') + ' : ' +
-              String(s).padStart(2, '0');
-          };
-          tick();
-          if (window._giveawayTimerInterval) clearInterval(window._giveawayTimerInterval);
-          window._giveawayTimerInterval = setInterval(tick, 1000);
-        }
+        db.ref('participants').on('value', (snapshot) => {
+          const data = snapshot.val();
+          participants = data ? Object.values(data) : [];
+          if (participants.length) {
+            participantsEl.innerHTML = participants.map(p => `<div class="participant-row"><div class="name">👤 ${escapeHtml(p.name)}</div><div class="date">${escapeHtml(p.date || '')}</div></div>`).join('');
+          } else {
+            participantsEl.innerHTML = '<div class="empty-state">Пока никто не участвует. Будь первым!</div>';
+          }
+        });
       }
 
       // ============================================
-      // 13. ПРОФИЛЬ
+      // ПРОФИЛЬ
       // ============================================
       function renderProfile() {
         const container = document.getElementById('profileContent');
         if (!currentUser) {
-          container.innerHTML = `
-            <div class="auth-page" style="margin-top:0;">
-              <h2><span class="icon">🔒</span> Вы не авторизованы</h2>
-              <p class="auth-sub" style="margin-bottom:20px;">Войдите через Telegram, чтобы увидеть свой профиль.</p>
-              <button class="btn btn-tg" onclick="switchPage('auth')" style="width:100%;">
-                <span class="icon">✈️</span> Войти через Telegram
-              </button>
-            </div>
-          `;
+          container.innerHTML = `<div class="auth-page" style="margin-top:0;"><h2>🔒 Вы не авторизованы</h2><p class="auth-sub" style="margin-bottom:20px;">Войдите через Telegram, чтобы увидеть профиль.</p><button class="btn btn-tg" onclick="switchPage('auth')" style="width:100%;">✈️ Войти</button></div>`;
           return;
         }
-
         const banned = isBanned(currentUser);
         const regDate = new Date(currentUser.createdAt).toLocaleDateString('ru-RU');
         const initial = currentUser.name.charAt(0).toUpperCase();
-        const messagesCount = chatMessages.filter(m => m.name === currentUser.name).length;
         const coins = currentUser.coins || 0;
-        
         let avatarHtml = initial;
-        if (currentUser.avatar) {
-          avatarHtml = `<img src="${escapeHtml(currentUser.avatar)}" alt="avatar">`;
-        }
+        if (currentUser.avatar) avatarHtml = `<img src="${escapeHtml(currentUser.avatar)}" alt="avatar">`;
 
         container.innerHTML = `
           <div class="profile-card">
             <div class="profile-avatar-big">${avatarHtml}</div>
             <div class="profile-name">${escapeHtml(currentUser.name)}</div>
             <div class="profile-tgid">Telegram ID: ${escapeHtml(currentUser.tgId || '—')}</div>
-            
             <div style="margin-bottom: 20px;">
               ${currentUser.role === 'admin' ? '<span class="role-badge admin">ADMIN</span>' : '<span class="role-badge">ИГРОК</span>'}
               ${banned ? '<span class="ban-badge">🚫 BAN</span>' : ''}
             </div>
-
             <div class="profile-stats">
-              <div class="stat-box">
-                <div class="stat-value">${coins}</div>
-                <div class="stat-label">Монеты</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value">${messagesCount}</div>
-                <div class="stat-label">Сообщений</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value">${regDate}</div>
-                <div class="stat-label">Дата рег.</div>
-              </div>
+              <div class="stat-box"><div class="stat-value">${coins}</div><div class="stat-label">Монеты</div></div>
+              <div class="stat-box"><div class="stat-value">0</div><div class="stat-label">Сообщений</div></div>
+              <div class="stat-box"><div class="stat-value">${regDate}</div><div class="stat-label">Дата рег.</div></div>
             </div>
-
-            ${banned ? `
-              <div style="background:rgba(218,54,51,0.1); border:1px solid #da3633; border-radius:8px; padding:12px; margin-bottom:20px; text-align:left;">
-                <p style="color:#f85149; font-weight:600; margin-bottom:4px;">🚫 Аккаунт забанен</p>
-                <p style="color:#8b949e; font-size:0.85rem;">Причина: ${escapeHtml(currentUser.banReason || '—')}</p>
-              </div>
-            ` : ''}
-
+            ${banned ? `<div style="background:rgba(218,54,51,0.1);border:1px solid #da3633;border-radius:8px;padding:12px;margin-bottom:20px;text-align:left;"><p style="color:#f85149;font-weight:600;margin-bottom:4px;">🚫 Аккаунт забанен</p><p style="color:#8b949e;font-size:0.85rem;">Причина: ${escapeHtml(currentUser.banReason || '—')}</p></div>` : ''}
             <div class="profile-actions">
-              <button class="btn btn-secondary" onclick="switchPage('chat')"><span class="icon">💬</span> В чат</button>
-              <button class="btn btn-danger" onclick="logoutUser()"><span class="icon">🚪</span> Выйти</button>
+              <button class="btn btn-secondary" onclick="switchPage('chat')">💬 В чат</button>
+              <button class="btn btn-danger" onclick="logoutUser()">🚪 Выйти</button>
             </div>
           </div>
         `;
       }
 
       // ============================================
-      // 14. НАСТОЯЩАЯ АВТОРИЗАЦИЯ ЧЕРЕЗ TELEGRAM
+      // АВТОРИЗАЦИЯ (Telegram)
       // ============================================
-      
       function updateUIForUser() {
         const sidebarUser = document.getElementById('sidebarUser');
         const topbarUserName = document.getElementById('topbarUserName');
         if (currentUser) {
           sidebarUser.style.display = 'flex';
-          
           const initial = currentUser.name.charAt(0).toUpperCase();
           const avatarEl = document.getElementById('userAvatar');
-          if (currentUser.avatar) {
-            avatarEl.innerHTML = `<img src="${escapeHtml(currentUser.avatar)}" alt="avatar">`;
-          } else {
-            avatarEl.textContent = initial;
-          }
-          
+          if (currentUser.avatar) avatarEl.innerHTML = `<img src="${escapeHtml(currentUser.avatar)}" alt="avatar">`;
+          else avatarEl.textContent = initial;
           document.getElementById('userName').textContent = currentUser.name;
           const roleEl = document.getElementById('userRole');
-          if (currentUser.role === 'admin') {
-            roleEl.innerHTML = 'Админ <span class="role-badge admin">ADMIN</span>';
-          } else {
-            roleEl.textContent = 'Игрок';
-          }
-          if (isBanned(currentUser)) {
-            roleEl.innerHTML = 'Игрок <span class="ban-badge">🚫 BAN</span>';
-          }
+          if (currentUser.role === 'admin') roleEl.innerHTML = 'Админ <span class="role-badge admin">ADMIN</span>';
+          else roleEl.textContent = 'Игрок';
+          if (isBanned(currentUser)) roleEl.innerHTML = 'Игрок <span class="ban-badge">🚫 BAN</span>';
           topbarUserName.textContent = currentUser.name;
         } else {
           sidebarUser.style.display = 'none';
@@ -1791,73 +918,50 @@
         }
       }
 
-      // Глобальная функция, которая вызывается Telegram-виджетом
       window.onTelegramAuth = function(user) {
-        console.log('Telegram Auth Data:', user);
-        
         const statusEl = document.getElementById('authStatus');
         if (statusEl) statusEl.textContent = 'Авторизация успешна! Входим...';
-
-        // Формируем имя из данных Telegram
         const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
         const tgId = String(user.id);
-        
-        // Логиним или регистрируем
         const existingUser = findUser(tgId);
         let finalUser;
-        
         if (existingUser) {
           existingUser.lastVisit = new Date().toISOString();
           if (user.photo_url) existingUser.avatar = user.photo_url;
-          saveUsers();
-          currentUser = existingUser;
-          finalUser = existingUser;
+          saveUsers(); currentUser = existingUser; finalUser = existingUser;
         } else {
           finalUser = loginUser(name, tgId);
           if (user.photo_url) finalUser.avatar = user.photo_url;
           saveUsers();
         }
-        
         saveJSON(STORAGE.CURRENT_USER, currentUser);
         updateUIForUser();
-        
         showToast('Добро пожаловать, ' + finalUser.name + '!');
-        
-        if (isBanned(finalUser)) {
-          showToast('Внимание: ваш аккаунт забанен', true);
-        }
-        
+        if (isBanned(finalUser)) showToast('Внимание: ваш аккаунт забанен', true);
         switchPage('profile');
       };
 
-      // Инициализация виджета Telegram
       (function initTelegramWidget() {
         const container = document.getElementById('telegram-login-container');
         if (!container) return;
-
-        // Удаляем старый скрипт, если есть
         container.innerHTML = '';
-
         const script = document.createElement('script');
         script.src = 'https://telegram.org/js/telegram-widget.js?22';
         script.async = true;
-        
         script.setAttribute('data-telegram-login', BOT_USERNAME);
         script.setAttribute('data-size', 'large');
         script.setAttribute('data-userpic', 'true');
         script.setAttribute('data-request-access', 'write');
         script.setAttribute('data-onauth', 'onTelegramAuth(user)');
         script.setAttribute('data-radius', '8');
-        
         container.appendChild(script);
       })();
 
-      // Если виджет не загрузился (например, домен не привязан)
       setTimeout(() => {
         const container = document.getElementById('telegram-login-container');
         const statusEl = document.getElementById('authStatus');
         if (container && container.children.length === 0 && statusEl) {
-          statusEl.innerHTML = '⚠️ Виджет не загрузился. Проверьте, что домен привязан к боту через /setdomain в @BotFather.';
+          statusEl.innerHTML = '⚠️ Виджет не загрузился. Проверьте домен в @BotFather.';
           statusEl.style.color = '#f85149';
         }
       }, 4000);
@@ -1865,7 +969,7 @@
       document.getElementById('chatLoginBtn').addEventListener('click', () => switchPage('auth'));
 
       // ============================================
-      // 15. ЧАТ
+      // ЧАТ (Firebase Realtime)
       // ============================================
       const chatMessagesEl = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
@@ -1904,33 +1008,29 @@
 
       function renderChat() {
         if (!chatMessagesEl) return;
-        if (!chatMessages.length) {
-          chatMessagesEl.innerHTML = '<div class="empty-state">Сообщений пока нет. Начни общение первым!</div>';
-        } else {
-          chatMessagesEl.innerHTML = chatMessages.map(m => {
-            const isOwn = currentUser && m.name === currentUser.name;
-            const isAdminMsg = m.isAdmin;
-            const initial = m.name ? m.name.charAt(0).toUpperCase() : '?';
-            const classes = ['chat-message'];
-            if (isOwn) classes.push('own');
-            if (isAdminMsg) classes.push('admin');
-            return `
-              <div class="${classes.join(' ')}">
-                <div class="chat-avatar">${escapeHtml(initial)}</div>
-                <div class="chat-body">
-                  <div class="chat-meta">
-                    <span class="chat-name">${escapeHtml(m.name)}</span>
-                    <span class="chat-time">${escapeHtml(m.time)}</span>
-                  </div>
-                  <div class="chat-text">${escapeHtml(m.text)}</div>
-                </div>
-              </div>
-            `;
-          }).join('');
-          chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
-        }
-        const unique = new Set(chatMessages.map(m => m.name));
-        chatOnlineCount.textContent = (unique.size + (currentUser ? 1 : 0)) + ' онлайн';
+        
+        db.ref('chat').limitToLast(100).on('value', (snapshot) => {
+          const data = snapshot.val();
+          const msgs = data ? Object.values(data) : [];
+          
+          if (!msgs.length) {
+            chatMessagesEl.innerHTML = '<div class="empty-state">Сообщений пока нет. Начни общение первым!</div>';
+          } else {
+            chatMessagesEl.innerHTML = msgs.map(m => {
+              const isOwn = currentUser && m.name === currentUser.name;
+              const initial = m.name ? m.name.charAt(0).toUpperCase() : '?';
+              const classes = ['chat-message'];
+              if (isOwn) classes.push('own');
+              if (m.isAdmin) classes.push('admin');
+              return `<div class="${classes.join(' ')}"><div class="chat-avatar">${escapeHtml(initial)}</div><div class="chat-body"><div class="chat-meta"><span class="chat-name">${escapeHtml(m.name)}</span><span class="chat-time">${escapeHtml(m.time)}</span></div><div class="chat-text">${escapeHtml(m.text)}</div></div></div>`;
+            }).join('');
+            chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+          }
+          
+          const unique = new Set(msgs.map(m => m.name));
+          chatOnlineCount.textContent = (unique.size + (currentUser ? 1 : 0)) + ' онлайн';
+        });
+        
         updateChatAccess();
       }
 
@@ -1941,59 +1041,35 @@
         if (!text) return;
 
         const now = Date.now();
-        if (now - lastMessageTime < MESSAGE_COOLDOWN_MS) {
-          showToast('Не так быстро! Подождите пару секунд', true);
-          return;
-        }
-
+        if (now - lastMessageTime < 3000) { showToast('Не так быстро!', true); return; }
+        
         const spamCheck = checkSpam(text);
-        if (!spamCheck.ok) {
-          showToast(spamCheck.reason, true);
-          if (spamCheck.reason.includes('ссылки')) {
-            console.warn('AntiSpam: заблокирована попытка отправить ссылку:', text);
-          }
-          return;
-        }
-
-        const exactDup = chatMessages.some(m =>
-          m.name === currentUser.name &&
-          m.text.toLowerCase() === text.toLowerCase()
-        );
-        if (exactDup) {
-          showToast('Такое сообщение вы уже отправляли', true);
-          return;
-        }
+        if (!spamCheck.ok) { showToast(spamCheck.reason, true); return; }
 
         const timeStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        chatMessages.push({
-          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-          name: currentUser.name, text, time: timeStr,
-          isAdmin: isAdminLogged()
-        });
-        if (chatMessages.length > 200) chatMessages = chatMessages.slice(-200);
-        saveJSON(STORAGE.CHAT, chatMessages);
-        chatInput.value = '';
-        lastMessageTime = now;
         
-        // Начисляем монетку за сообщение
-        currentUser.coins = (currentUser.coins || 0) + 1;
-        saveUsers();
-
-        renderChat();
-        if (isAdminLogged()) renderAdminChat();
+        db.ref('chat').push({
+          name: currentUser.name,
+          text: text,
+          time: timeStr,
+          isAdmin: isAdminLogged()
+        }).then(() => {
+          chatInput.value = '';
+          lastMessageTime = now;
+          currentUser.coins = (currentUser.coins || 0) + 1;
+          saveUsers();
+        }).catch((error) => {
+          showToast('Ошибка отправки: ' + error.message, true);
+        });
       }
 
       chatSendBtn.addEventListener('click', sendChatMessage);
-      chatInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') sendChatMessage();
-      });
+      chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
 
       // ============================================
-      // 16. АДМИН
+      // АДМИН
       // ============================================
-      function isAdminLogged() {
-        return localStorage.getItem(STORAGE.ADMIN) === '1';
-      }
+      function isAdminLogged() { return localStorage.getItem(STORAGE.ADMIN) === '1'; }
 
       function updateAdminView() {
         const loginView = document.getElementById('adminLoginView');
@@ -2024,10 +1100,7 @@
           showToast('Неверный пароль', true);
         }
       });
-
-      document.getElementById('adminPassword').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') document.getElementById('loginBtn').click();
-      });
+      document.getElementById('adminPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
 
       function logoutAdmin() {
         localStorage.removeItem(STORAGE.ADMIN);
@@ -2048,15 +1121,17 @@
         });
       });
 
-      // ============================================
-      // 17. АДМИН: РОЗЫГРЫШ
-      // ============================================
+      // АДМИН: РОЗЫГРЫШ (Firebase)
       function fillGiveawayForm() {
-        document.getElementById('gwTitle').value = giveaway.title || '';
-        document.getElementById('gwWinners').value = giveaway.winners || 1;
-        document.getElementById('gwText').value = giveaway.text || '';
-        document.getElementById('gwEnd').value = giveaway.end || '';
-        document.getElementById('gwStatus').value = giveaway.status || 'active';
+        db.ref('giveaway').once('value', (snapshot) => {
+          const data = snapshot.val();
+          if (data) giveaway = data;
+          document.getElementById('gwTitle').value = giveaway.title || '';
+          document.getElementById('gwWinners').value = giveaway.winners || 1;
+          document.getElementById('gwText').value = giveaway.text || '';
+          document.getElementById('gwEnd').value = giveaway.end || '';
+          document.getElementById('gwStatus').value = giveaway.status || 'active';
+        });
       }
 
       document.getElementById('giveawayForm').addEventListener('submit', (e) => {
@@ -2066,67 +1141,36 @@
         const text = document.getElementById('gwText').value.trim();
         const end = document.getElementById('gwEnd').value.trim();
         const status = document.getElementById('gwStatus').value;
-        if (!title || !text || !winners || winners < 1) {
-          showToast('Заполните все поля', true);
-          return;
-        }
-        giveaway = { title, text, winners, end, status };
-        saveJSON(STORAGE.GIVEAWAY, giveaway);
-        renderPublicGiveaway();
-        showToast('Розыгрыш обновлён');
+        if (!title || !text || !winners || winners < 1) { showToast('Заполните все поля', true); return; }
+        
+        db.ref('giveaway').set({ title, text, winners, end, status }).then(() => {
+          showToast('Розыгрыш обновлён');
+          renderPublicGiveaway();
+        });
       });
 
-      // ============================================
-      // 18. АДМИН: УЧАСТНИКИ
-      // ============================================
+      // АДМИН: УЧАСТНИКИ (Firebase)
       document.getElementById('participantForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('partName').value.trim();
         if (!name) return;
-        participants.push({
-          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-          name, date: new Date().toLocaleDateString('ru-RU')
+        db.ref('participants').push({ name, date: new Date().toLocaleDateString('ru-RU') }).then(() => {
+          document.getElementById('partName').value = '';
+          showToast('Участник добавлен');
         });
-        saveJSON(STORAGE.PARTICIPANTS, participants);
-        document.getElementById('partName').value = '';
-        renderAdminParticipants();
-        renderPublicGiveaway();
-        showToast('Участник добавлен');
       });
 
       function renderAdminParticipants() {
         const list = document.getElementById('adminParticipantsList');
-        if (!participants.length) {
-          list.innerHTML = '<div class="empty-state">Пока нет участников</div>';
-          return;
-        }
-        list.innerHTML = participants.map(p => `
-          <div class="admin-item">
-            <div class="admin-item-info">
-              <h4><span class="icon" style="color:#58a6ff;margin-right:6px;">👤</span>${escapeHtml(p.name)}</h4>
-              <div class="meta"><span><span class="icon">📅</span> ${escapeHtml(p.date || '')}</span></div>
-            </div>
-            <div class="admin-item-actions">
-              <button class="icon-btn delete" data-remove-part="${p.id}"><span class="icon">🗑️</span> Удалить</button>
-            </div>
-          </div>
-        `).join('');
-
-        list.querySelectorAll('[data-remove-part]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const id = btn.dataset.removePart;
-            participants = participants.filter(p => p.id !== id);
-            saveJSON(STORAGE.PARTICIPANTS, participants);
-            renderAdminParticipants();
-            renderPublicGiveaway();
-            showToast('Участник удалён');
-          });
+        db.ref('participants').on('value', (snapshot) => {
+          const data = snapshot.val();
+          participants = data ? Object.values(data) : [];
+          if (!participants.length) { list.innerHTML = '<div class="empty-state">Пока нет участников</div>'; return; }
+          list.innerHTML = participants.map(p => `<div class="admin-item"><div class="admin-item-info"><h4>👤 ${escapeHtml(p.name)}</h4><div class="meta"><span>📅 ${escapeHtml(p.date || '')}</span></div></div></div>`).join('');
         });
       }
 
-      // ============================================
-      // 19. АДМИН: НОВОСТИ
-      // ============================================
+      // АДМИН: НОВОСТИ (Firebase)
       const newsForm = document.getElementById('newsForm');
       const editIdInput = document.getElementById('editId');
       const titleInput = document.getElementById('newsTitle');
@@ -2139,17 +1183,9 @@
       const newsSubmitBtn = document.getElementById('newsSubmitBtn');
 
       function resetForm() {
-        editIdInput.value = '';
-        titleInput.value = '';
-        dateInput.value = '';
-        iconSelect.value = '🏆';
-        featuredSelect.value = 'no';
-        textInput.value = '';
-        cancelEditBtn.style.display = 'none';
-        newsFormTitle.textContent = 'Добавить новость';
-        newsSubmitBtn.innerHTML = '<span class="icon">💾</span> Сохранить';
+        editIdInput.value = ''; titleInput.value = ''; dateInput.value = ''; iconSelect.value = '🏆'; featuredSelect.value = 'no'; textInput.value = '';
+        cancelEditBtn.style.display = 'none'; newsFormTitle.textContent = 'Добавить новость'; newsSubmitBtn.innerHTML = '💾 Сохранить';
       }
-
       cancelEditBtn.addEventListener('click', resetForm);
 
       newsForm.addEventListener('submit', (e) => {
@@ -2160,172 +1196,132 @@
         const icon = iconSelect.value;
         const featured = featuredSelect.value === 'yes';
         if (!title || !date || !text) { showToast('Заполните все поля', true); return; }
+        
         const editId = editIdInput.value;
         if (editId) {
-          const idx = newsList.findIndex(n => n.id === editId);
-          if (idx !== -1) {
-            newsList[idx] = { ...newsList[idx], title, date, text, icon, featured };
-            showToast('Новость обновлена');
-          }
-        } else {
-          newsList.unshift({
-            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-            title, date, text, icon, featured
+          db.ref('news/' + editId).update({ title, date, text, icon, featured }).then(() => {
+            showToast('Новость обновлена'); resetForm();
           });
-          showToast('Новость добавлена');
+        } else {
+          const newId = 'n_' + Date.now().toString(36);
+          db.ref('news/' + newId).set({ title, date, text, icon, featured }).then(() => {
+            showToast('Новость добавлена'); resetForm();
+          });
         }
-        saveJSON(STORAGE.NEWS, newsList);
-        renderPublicNews();
-        renderAdminList();
-        resetForm();
       });
 
       function renderAdminList() {
         const list = document.getElementById('adminList');
-        if (!newsList.length) {
-          list.innerHTML = '<div class="empty-state">Новостей пока нет.</div>';
-          return;
-        }
-        list.innerHTML = newsList.map(item => `
-          <div class="admin-item">
-            <div class="admin-item-info">
-              <h4><span class="icon" style="color:#58a6ff;margin-right:6px;">${escapeHtml(item.icon)}</span>${escapeHtml(item.title)}</h4>
-              <p>${escapeHtml(item.text)}</p>
-              <div class="meta">
-                <span><span class="icon">📅</span> ${escapeHtml(item.date)}</span>
-                ${item.featured ? '<span style="color:#3fb950;"><span class="icon">⭐</span> На главной</span>' : ''}
+        db.ref('news').on('value', (snapshot) => {
+          const data = snapshot.val();
+          newsList = data ? Object.entries(data).map(([id, val]) => ({ ...val, id })) : [];
+          if (!newsList.length) { list.innerHTML = '<div class="empty-state">Новостей пока нет.</div>'; return; }
+          list.innerHTML = newsList.map(item => `
+            <div class="admin-item">
+              <div class="admin-item-info">
+                <h4>${escapeHtml(item.icon)} ${escapeHtml(item.title)}</h4>
+                <p>${escapeHtml(item.text)}</p>
+                <div class="meta"><span>📅 ${escapeHtml(item.date)}</span>${item.featured ? '<span style="color:#3fb950;">⭐ На главной</span>' : ''}</div>
+              </div>
+              <div class="admin-item-actions">
+                <button class="icon-btn edit" data-edit="${item.id}">✏️ Изменить</button>
+                <button class="icon-btn delete" data-delete="${item.id}">🗑️ Удалить</button>
               </div>
             </div>
-            <div class="admin-item-actions">
-              <button class="icon-btn edit" data-edit="${item.id}"><span class="icon">✏️</span> Изменить</button>
-              <button class="icon-btn delete" data-delete="${item.id}"><span class="icon">🗑️</span> Удалить</button>
-            </div>
-          </div>
-        `).join('');
+          `).join('');
 
-        list.querySelectorAll('[data-edit]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const id = btn.dataset.edit;
-            const item = newsList.find(n => n.id === id);
-            if (!item) return;
-            editIdInput.value = item.id;
-            titleInput.value = item.title;
-            dateInput.value = item.date;
-            iconSelect.value = item.icon;
-            featuredSelect.value = item.featured ? 'yes' : 'no';
-            textInput.value = item.text;
-            cancelEditBtn.style.display = 'inline-flex';
-            newsFormTitle.textContent = 'Редактировать новость';
-            newsSubmitBtn.innerHTML = '<span class="icon">💾</span> Обновить';
-            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
-            const addTab = document.querySelector('[data-tab="news-add"]');
-            if (addTab) addTab.classList.add('active');
-            const addContent = document.getElementById('tab-news-add');
-            if (addContent) addContent.classList.add('active');
-            titleInput.focus();
+          list.querySelectorAll('[data-edit]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const id = btn.dataset.edit;
+              const item = newsList.find(n => n.id === id);
+              if (!item) return;
+              editIdInput.value = item.id; titleInput.value = item.title; dateInput.value = item.date;
+              iconSelect.value = item.icon; featuredSelect.value = item.featured ? 'yes' : 'no'; textInput.value = item.text;
+              cancelEditBtn.style.display = 'inline-flex';
+              newsFormTitle.textContent = 'Редактировать новость';
+              newsSubmitBtn.innerHTML = '💾 Обновить';
+              document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+              document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+              document.querySelector('[data-tab="news-add"]').classList.add('active');
+              document.getElementById('tab-news-add').classList.add('active');
+              titleInput.focus();
+            });
           });
-        });
 
-        list.querySelectorAll('[data-delete]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const id = btn.dataset.delete;
-            const item = newsList.find(n => n.id === id);
-            if (!item) return;
-            if (confirm(`Удалить новость "${item.title}"?`)) {
-              newsList = newsList.filter(n => n.id !== id);
-              saveJSON(STORAGE.NEWS, newsList);
-              renderPublicNews();
-              renderAdminList();
-              resetForm();
-              showToast('Новость удалена');
-            }
+          list.querySelectorAll('[data-delete]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const id = btn.dataset.delete;
+              if (confirm('Удалить новость?')) {
+                db.ref('news/' + id).remove().then(() => {
+                  showToast('Новость удалена'); resetForm();
+                });
+              }
+            });
           });
         });
       }
 
-      // ============================================
-      // 20. АДМИН: МОДЕРАЦИЯ ЧАТА
-      // ============================================
+      // АДМИН: МОДЕРАЦИЯ ЧАТА (Firebase)
       function renderAdminChat() {
         const list = document.getElementById('adminChatList');
         const countEl = document.getElementById('chatTotalCount');
-        if (countEl) countEl.textContent = chatMessages.length;
-        if (!list) return;
-        if (!chatMessages.length) {
-          list.innerHTML = '<div class="empty-state">Сообщений пока нет</div>';
-          return;
-        }
-        const recent = chatMessages.slice(-50).reverse();
-        list.innerHTML = recent.map(m => `
-          <div class="admin-item">
-            <div class="admin-item-info">
-              <h4><span class="icon" style="color:#58a6ff;margin-right:6px;">👤</span>${escapeHtml(m.name)} ${m.isAdmin ? '<span style="background:#da3633;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:4px;">ADMIN</span>' : ''}</h4>
-              <p>${escapeHtml(m.text)}</p>
-              <div class="meta"><span><span class="icon">⏰</span> ${escapeHtml(m.time)}</span></div>
+        
+        db.ref('chat').limitToLast(50).on('value', (snapshot) => {
+          const data = snapshot.val();
+          const msgs = data ? Object.entries(data).map(([id, val]) => ({ ...val, id })).reverse() : [];
+          countEl.textContent = msgs.length;
+          
+          if (!msgs.length) { list.innerHTML = '<div class="empty-state">Сообщений пока нет</div>'; return; }
+          
+          list.innerHTML = msgs.map(m => `
+            <div class="admin-item">
+              <div class="admin-item-info">
+                <h4>👤 ${escapeHtml(m.name)} ${m.isAdmin ? '<span style="background:#da3633;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:4px;">ADMIN</span>' : ''}</h4>
+                <p>${escapeHtml(m.text)}</p>
+                <div class="meta"><span>⏰ ${escapeHtml(m.time)}</span></div>
+              </div>
+              <div class="admin-item-actions">
+                <button class="icon-btn delete" data-del-msg="${m.id}">🗑️ Удалить</button>
+                <button class="icon-btn warn" data-ban-author="${escapeHtml(m.name)}">⚖️ Бан</button>
+              </div>
             </div>
-            <div class="admin-item-actions">
-              <button class="icon-btn delete" data-del-msg="${m.id}"><span class="icon">🗑️</span> Удалить</button>
-              <button class="icon-btn warn" data-ban-author="${escapeHtml(m.name)}"><span class="icon">⚖️</span> Бан</button>
-            </div>
-          </div>
-        `).join('');
+          `).join('');
 
-        list.querySelectorAll('[data-del-msg]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const id = btn.dataset.delMsg;
-            chatMessages = chatMessages.filter(m => m.id !== id);
-            saveJSON(STORAGE.CHAT, chatMessages);
-            renderAdminChat();
-            renderChat();
-            showToast('Сообщение удалено');
+          list.querySelectorAll('[data-del-msg]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              db.ref('chat/' + btn.dataset.delMsg).remove().then(() => showToast('Сообщение удалено'));
+            });
           });
-        });
 
-        list.querySelectorAll('[data-ban-author]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const author = btn.dataset.banAuthor;
-            if (confirm(`Забанить "${author}" за это сообщение?`)) {
-              const user = findUser(author);
-              if (user) {
-                user.banned = true;
-                user.banReason = 'Оскорбление / нарушение правил';
-                user.banUntil = null;
-                saveUsers();
-                renderAdminUsers();
-                renderChat();
-                showToast('Пользователь ' + author + ' забанен');
-              } else {
-                showToast('Пользователь не найден в базе', true);
+          list.querySelectorAll('[data-ban-author]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const author = btn.dataset.banAuthor;
+              if (confirm(`Забанить "${author}"?`)) {
+                const user = findUser(author);
+                if (user) {
+                  user.banned = true; user.banReason = 'Оскорбление / нарушение правил'; user.banUntil = null;
+                  saveUsers(); renderAdminUsers(); renderChat();
+                  showToast('Пользователь ' + author + ' забанен');
+                } else { showToast('Пользователь не найден', true); }
               }
-            }
+            });
           });
         });
       }
 
       document.getElementById('chatClearBtn').addEventListener('click', () => {
-        if (!chatMessages.length) { showToast('Чат уже пуст', true); return; }
-        if (confirm('Очистить весь чат? Это действие нельзя отменить.')) {
-          chatMessages = [];
-          saveJSON(STORAGE.CHAT, chatMessages);
-          renderAdminChat();
-          renderChat();
-          showToast('Чат очищен');
+        if (confirm('Очистить весь чат?')) {
+          db.ref('chat').remove().then(() => showToast('Чат очищен'));
         }
       });
 
-      // ============================================
-      // 21. АДМИН: ПОЛЬЗОВАТЕЛИ И БАНЫ
-      // ============================================
+      // АДМИН: ПОЛЬЗОВАТЕЛИ И БАНЫ
       function renderAdminUsers() {
         const list = document.getElementById('adminUsersList');
         const countEl = document.getElementById('adminUsersCount');
-        if (countEl) countEl.textContent = users.length;
-        if (!list) return;
-        if (!users.length) {
-          list.innerHTML = '<div class="empty-state">Пользователей пока нет</div>';
-          return;
-        }
+        countEl.textContent = users.length;
+        if (!users.length) { list.innerHTML = '<div class="empty-state">Пользователей пока нет</div>'; return; }
+        
         const sorted = [...users].sort((a, b) => {
           if (isBanned(a) && !isBanned(b)) return -1;
           if (!isBanned(a) && isBanned(b)) return 1;
@@ -2335,35 +1331,17 @@
         list.innerHTML = sorted.map(u => {
           const banned = isBanned(u);
           const lastVisit = u.lastVisit ? new Date(u.lastVisit).toLocaleDateString('ru-RU') : '—';
-          const daysInactive = u.lastVisit
-            ? Math.floor((Date.now() - new Date(u.lastVisit).getTime()) / (1000 * 60 * 60 * 24))
-            : null;
           return `
             <div class="admin-item">
               <div class="admin-item-info">
-                <h4>
-                  <span class="icon" style="color:#58a6ff;margin-right:6px;">👤</span>${escapeHtml(u.name)}
-                  ${u.role === 'admin' ? '<span class="role-badge admin">ADMIN</span>' : ''}
-                  ${banned ? '<span class="ban-badge">🚫 BAN</span>' : ''}
-                </h4>
-                <p style="font-size:0.85rem;">
-                  TG ID: ${escapeHtml(u.tgId || '—')} • 
-                  Последний визит: ${lastVisit}
-                  ${daysInactive !== null ? ` (${daysInactive} дн. назад)` : ''}
-                </p>
-                ${banned ? `<p style="color:#f85149;font-size:0.85rem;"><span class="icon">⚖️</span> Причина: ${escapeHtml(u.banReason || '—')}</p>` : ''}
-                <div class="meta">
-                  <span><span class="icon">📅</span> Регистрация: ${new Date(u.createdAt).toLocaleDateString('ru-RU')}</span>
-                  <span><span class="icon">🪙</span> Монеты: ${u.coins || 0}</span>
-                </div>
+                <h4>👤 ${escapeHtml(u.name)} ${u.role === 'admin' ? '<span class="role-badge admin">ADMIN</span>' : ''} ${banned ? '<span class="ban-badge">🚫 BAN</span>' : ''}</h4>
+                <p style="font-size:0.85rem;">TG ID: ${escapeHtml(u.tgId || '—')} • Последний визит: ${lastVisit}</p>
+                ${banned ? `<p style="color:#f85149;font-size:0.85rem;">⚖️ Причина: ${escapeHtml(u.banReason || '—')}</p>` : ''}
+                <div class="meta"><span>📅 Регистрация: ${new Date(u.createdAt).toLocaleDateString('ru-RU')}</span><span>🪙 Монеты: ${u.coins || 0}</span></div>
               </div>
               <div class="admin-item-actions">
-                ${banned ? `
-                  <button class="icon-btn unban" data-unban="${u.id}"><span class="icon">🔓</span> Разбанить</button>
-                ` : `
-                  <button class="icon-btn warn" data-ban-user="${u.id}"><span class="icon">⚖️</span> Забанить</button>
-                `}
-                <button class="icon-btn delete" data-del-user="${u.id}"><span class="icon">🗑️</span> Удалить</button>
+                ${banned ? `<button class="icon-btn unban" data-unban="${u.id}">🔓 Разбанить</button>` : `<button class="icon-btn warn" data-ban-user="${u.id}">⚖️ Забанить</button>`}
+                <button class="icon-btn delete" data-del-user="${u.id}">🗑️ Удалить</button>
               </div>
             </div>
           `;
@@ -2371,51 +1349,34 @@
 
         list.querySelectorAll('[data-unban]').forEach(btn => {
           btn.addEventListener('click', () => {
-            const id = btn.dataset.unban;
-            const user = findUserById(id);
+            const user = findUserById(btn.dataset.unban);
             if (!user) return;
-            user.banned = false;
-            user.banReason = '';
-            user.banUntil = null;
-            saveUsers();
-            renderAdminUsers();
-            updateUIForUser();
-            renderChat();
+            user.banned = false; user.banReason = ''; user.banUntil = null;
+            saveUsers(); renderAdminUsers(); updateUIForUser(); renderChat();
             showToast('Пользователь разбанен');
           });
         });
 
         list.querySelectorAll('[data-ban-user]').forEach(btn => {
           btn.addEventListener('click', () => {
-            const id = btn.dataset.banUser;
-            const user = findUserById(id);
+            const user = findUserById(btn.dataset.banUser);
             if (!user) return;
             const reason = prompt('Причина бана:', 'Оскорбление игроков');
             if (reason === null) return;
-            user.banned = true;
-            user.banReason = reason || 'Нарушение правил';
-            user.banUntil = null;
-            saveUsers();
-            renderAdminUsers();
-            updateUIForUser();
-            renderChat();
+            user.banned = true; user.banReason = reason || 'Нарушение правил'; user.banUntil = null;
+            saveUsers(); renderAdminUsers(); updateUIForUser(); renderChat();
             showToast('Пользователь забанен');
           });
         });
 
         list.querySelectorAll('[data-del-user]').forEach(btn => {
           btn.addEventListener('click', () => {
-            const id = btn.dataset.delUser;
-            const user = findUserById(id);
+            const user = findUserById(btn.dataset.delUser);
             if (!user) return;
-            if (confirm(`Удалить пользователя "${user.name}"?`)) {
-              users = users.filter(u => u.id !== id);
+            if (confirm(`Удалить "${user.name}"?`)) {
+              users = users.filter(u => u.id !== user.id);
               saveUsers();
-              if (currentUser && currentUser.id === id) {
-                currentUser = null;
-                localStorage.removeItem(STORAGE.CURRENT_USER);
-                updateUIForUser();
-              }
+              if (currentUser && currentUser.id === user.id) { currentUser = null; localStorage.removeItem(STORAGE.CURRENT_USER); updateUIForUser(); }
               renderAdminUsers();
               showToast('Пользователь удалён');
             }
@@ -2430,85 +1391,43 @@
         if (!name || !reason) { showToast('Заполните все поля', true); return; }
         const user = findUser(name);
         if (!user) { showToast('Пользователь не найден', true); return; }
-        user.banned = true;
-        user.banReason = reason;
-        user.banUntil = null;
-        saveUsers();
-        document.getElementById('banTargetName').value = '';
-        document.getElementById('banReason').value = '';
-        renderAdminUsers();
-        updateUIForUser();
-        renderChat();
+        user.banned = true; user.banReason = reason; user.banUntil = null;
+        saveUsers(); document.getElementById('banTargetName').value = ''; document.getElementById('banReason').value = '';
+        renderAdminUsers(); updateUIForUser(); renderChat();
         showToast('Пользователь ' + name + ' забанен');
       });
 
       document.getElementById('applyAutoBanBtn').addEventListener('click', () => {
         const threshold = parseInt(document.getElementById('inactiveThreshold').value, 10);
-        const reason = document.getElementById('autoBanReason').value.trim() || 'Неактивность на сайте';
+        const reason = document.getElementById('autoBanReason').value.trim() || 'Неактивность';
         const now = Date.now();
         const thresholdMs = threshold * 24 * 60 * 60 * 1000;
         let bannedCount = 0;
-        let skipped = 0;
-
         users.forEach(u => {
-          if (u.role === 'admin') { skipped++; return; }
-          if (isBanned(u)) return;
-          if (!u.lastVisit) return;
+          if (u.role === 'admin' || isBanned(u) || !u.lastVisit) return;
           if (now - new Date(u.lastVisit).getTime() > thresholdMs) {
-            u.banned = true;
-            u.banReason = reason;
-            u.banUntil = null;
-            bannedCount++;
+            u.banned = true; u.banReason = reason; u.banUntil = null; bannedCount++;
           }
         });
-
         if (bannedCount > 0) {
-          saveUsers();
-          renderAdminUsers();
-          updateUIForUser();
-          renderChat();
-          showToast(`Авто-бан: забанено ${bannedCount} польз.` + (skipped ? ` (пропущено админов: ${skipped})` : ''));
-        } else {
-          showToast('Нет пользователей для авто-бана');
-        }
-
-        autoBanSettings.thresholdDays = threshold;
-        saveJSON(STORAGE.AUTO_BAN_SETTINGS, autoBanSettings);
+          saveUsers(); renderAdminUsers(); updateUIForUser(); renderChat();
+          showToast(`Авто-бан: забанено ${bannedCount} польз.`);
+        } else { showToast('Нет пользователей для авто-бана'); }
       });
 
-      // ============================================
-      // 22. LASTVISIT
-      // ============================================
-      function updateLastVisit() {
-        if (currentUser) {
-          currentUser.lastVisit = new Date().toISOString();
-          saveUsers();
-        }
-      }
+      function updateLastVisit() { if (currentUser) { currentUser.lastVisit = new Date().toISOString(); saveUsers(); } }
 
-      // Делаем функции доступными глобально для onclick в HTML
       window.switchPage = switchPage;
       window.logoutUser = logoutUser;
 
       // ============================================
-      // 23. ИНИЦИАЛИЗАЦИЯ
+      // ИНИЦИАЛИЗАЦИЯ
       // ============================================
       renderPublicNews();
       renderPublicGiveaway();
-      renderAdminList();
-      renderAdminParticipants();
-      renderChat();
-      renderAdminChat();
-      renderAdminUsers();
       updateUIForUser();
       updateLastVisit();
-
       setInterval(updateLastVisit, 60000);
-
-      const thresholdSel = document.getElementById('inactiveThreshold');
-      if (thresholdSel && autoBanSettings.thresholdDays) {
-        thresholdSel.value = String(autoBanSettings.thresholdDays);
-      }
 
     })();
   </script>
