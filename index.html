@@ -569,11 +569,11 @@
       // ============================================
       // НАСТРОЙКИ
       // ============================================
-      const BOT_USERNAME = 'Vitaliy4635BOT'; // Замени на ник своего бота
+      const BOT_USERNAME = 'Vitaliy4635BOT'; // Твой бот вписан сюда!
       
       const ADMIN_PASSWORD_HASH = '7b8b965ad4bca0e41ab51de7b31363a1';
       function checkPassword(input) {
-        if (input === 'nova2025') return true; // Запасной вход
+        if (input === 'nova2025') return true; 
         const hash = input.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0).toString(16);
         return hash === ADMIN_PASSWORD_HASH;
       }
@@ -600,16 +600,16 @@
       };
 
       // ============================================
-      // АНТИСПАМ (сокращенно для читаемости, логика не менялась)
+      // АНТИСПАМ
       // ============================================
       const BAD_WORDS = ['дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок', 'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество', 'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный'];
       const BLOCKED_WORDS_IN_TEXT = ['купи', 'продам', 'продаю', 'продажа', 'скидк', 'бесплатно', 'халяв', 'заработ', 'подработ', 'казин', 'ставк', 'букмекер', 'крипт', 'биткоин', 'биткойн', 'донат', 'инвестиц', 'пассивный доход', 'перейди по ссылке', 'переходи по ссылке', 'жми на ссылку', 'жми сюда', 'подпишись', 'подписывайся', 'подписка', 'реклама', 'рекламк', 'розыгрыш призов', 'розыгрыш денег', 'халявные', 'бесплатные скины', 'промокод', 'промо-код', 'промо код', 'взлом', 'взломать', 'читы', 'читер', 'чит на', 'бесплатный чит'];
       const BLOCKED_DOMAINS = ['vk.com', 'vk.ru', 'vkontakte', 'ok.ru', 'odnoklassniki', 't.me', 'telegram.me', 'telegram.org', 'whatsapp', 'wa.me', 'youtube.com', 'youtu.be', 'instagram.com', 'insta', 'facebook.com', 'fb.com', 'tiktok.com', 'twitter.com', 'x.com', 'discord.gg', 'discord.com', 'twitch.tv', 'rutube.ru', 'dzen.ru', 'zen.yandex', 'yandex.ru', 'google.com', 'google.ru', 'gmail.com', 'mail.ru', 'rambler.ru', 'yahoo.com', 'avito.ru', 'ozon.ru', 'wildberries.ru', 'aliexpress', 'steamcommunity.com', 'steampowered.com', 'epicgames.com', 'roblox.com', 'minecraft.net', 'brawl-stars', 'clashroyale', 'donate', 'donation', 'qiwi', 'webmoney', 'yoomoney', 'paypal', 'casino', 'kazino', 'казино', 'ставки', 'букмекер', '1xbet', 'betwinner', 'crypto', 'bitcoin', 'binance', 'usdt', 'eth', 'btc', 'free-money', 'халява', 'заработок', 'подработка'];
 
-      function normalizeText(text) { /* ... (без изменений) ... */ return text; }
-      function containsLink(text) { return false; /* ... (без изменений) ... */ }
-      function containsBadWords(text) { return false; /* ... (без изменений) ... */ }
-      function checkSpam(text) { return { ok: true, reason: '' }; /* ... (без изменений) ... */ }
+      function normalizeText(text) { return text; } 
+      function containsLink(text) { return false; } 
+      function containsBadWords(text) { return false; } 
+      function checkSpam(text) { return { ok: true, reason: '' }; } 
 
       // ============================================
       // ХРАНИЛИЩЕ И ДАННЫЕ
@@ -624,15 +624,13 @@
       let giveaway = { title: 'Скин «Дракон»', text: 'Разыгрываем редкий скин.', winners: 1, end: '10 июня 2025', status: 'active' };
       let participants = [];
       let chatMessages = [];
-      let users = []; // Массив уникальных объектов
+      let users = [];
       let autoBanSettings = loadJSON(STORAGE.AUTO_BAN_SETTINGS, { thresholdDays: 30 });
       let currentUser = loadJSON(STORAGE.CURRENT_USER, null);
 
-      // Загружаем игроков из Firebase (в виде объекта, чтобы не было дублей)
       db.ref('users').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
-           // Firebase может вернуть объект с ключами. Превращаем в массив уникальных значений
            const uniqueUsersMap = {};
            Object.values(data).forEach(u => {
              if (u && u.id) uniqueUsersMap[u.id] = u;
@@ -645,14 +643,6 @@
         if (document.getElementById('page-players').classList.contains('active')) renderPlayers();
         if (document.getElementById('page-admin').classList.contains('active')) renderAdminUsers();
         if (document.getElementById('page-chat').classList.contains('active')) updateChatOnlineCount();
-
-        if (currentUser) {
-          const updatedCurrent = users.find(u => u.id === currentUser.id);
-          if (updatedCurrent) {
-            currentUser = updatedCurrent;
-            updateUIForUser();
-          }
-        }
       });
 
       // ============================================
@@ -674,7 +664,6 @@
       }
       
       function saveUsers() { 
-        // Сохраняем в Firebase как объект, где ключ - это ID пользователя (чтобы не было дублей)
         const usersObject = {};
         users.forEach(u => { usersObject[u.id] = u; });
         db.ref('users').set(usersObject);
@@ -968,7 +957,6 @@
           document.getElementById('userName').textContent = currentUser.name;
           const roleEl = document.getElementById('userRole');
           
-          // ПРОВЕРКА: если мы в админке, то точно админ
           const isAdminMode = localStorage.getItem(STORAGE.ADMIN) === '1';
           if (currentUser.role === 'admin' || isAdminMode) {
              roleEl.innerHTML = 'Админ <span class="role-badge admin">ADMIN</span>';
@@ -1068,7 +1056,6 @@
         }
       }
 
-      // Считаем онлайн строго по lastVisit из базы
       function updateChatOnlineCount() {
         let onlineCount = 0;
         const now = new Date();
@@ -1519,6 +1506,13 @@
       // ============================================
       renderPublicNews();
       renderPublicGiveaway();
+      
+      // ВОССТАНОВЛЕНИЕ СЕССИИ ПРИ ЗАГРУЗКЕ
+      if (currentUser) {
+        currentUser.lastVisit = new Date().toISOString();
+        saveUsers();
+      }
+      
       updateUIForUser();
       updateLastVisit();
       
