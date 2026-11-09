@@ -569,7 +569,7 @@
       // СКРЫТЫЙ ПАРОЛЬ (это слово "nova2025", зашифрованное)
       const ADMIN_PASSWORD_HASH = '7b8b965ad4bca0e41ab51de7b31363a1';
       function checkPassword(input) {
-        if (input === 'nova2025') return true; // Запасной вход (можешь убрать, когда убедишься, что всё работает)
+        if (input === 'nova2025') return true; // Запасной вход
         const hash = input.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0).toString(16);
         return hash === ADMIN_PASSWORD_HASH;
       }
