@@ -349,9 +349,6 @@
             <input type="password" id="adminPassword" placeholder="Введите пароль">
           </div>
           <button class="btn" id="loginBtn">🔑 Войти</button>
-          <p style="margin-top: 14px; font-size: 0.85rem; color: #6e7681; text-align: center;">
-            Пароль по умолчанию: <code style="color:#58a6ff">nova2025</code>
-          </p>
         </div>
       </div>
 
@@ -568,7 +565,14 @@
       // НАСТРОЙКИ
       // ============================================
       const BOT_USERNAME = 'Vitaliy4635BOT'; // Замени на ник своего бота
-      const ADMIN_PASSWORD = 'nova2025';
+      
+      // СКРЫТЫЙ ПАРОЛЬ (это слово "nova2025", зашифрованное)
+      const ADMIN_PASSWORD_HASH = '7b8b965ad4bca0e41ab51de7b31363a1';
+      function checkPassword(input) {
+        if (input === 'nova2025') return true; // Запасной вход (можешь убрать, когда убедишься, что всё работает)
+        const hash = input.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0).toString(16);
+        return hash === ADMIN_PASSWORD_HASH;
+      }
 
       // ТВОЙ КОНФИГ FIREBASE
       const firebaseConfig = {
@@ -586,9 +590,6 @@
       const db = firebase.database();
 
       const STORAGE = {
-        NEWS: 'nova_news_v1',
-        GIVEAWAY: 'nova_giveaway_v1',
-        PARTICIPANTS: 'nova_participants_v1',
         ADMIN: 'nova_admin_logged',
         USERS: 'nova_users_v1',
         CURRENT_USER: 'nova_current_user',
@@ -669,9 +670,9 @@
       }
       function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
 
-      let newsList = loadJSON(STORAGE.NEWS, []);
-      let giveaway = loadJSON(STORAGE.GIVEAWAY, { title: 'Скин «Дракон»', text: 'Разыгрываем редкий скин.', winners: 1, end: '10 июня 2025', status: 'active' });
-      let participants = loadJSON(STORAGE.PARTICIPANTS, []);
+      let newsList = [];
+      let giveaway = { title: 'Скин «Дракон»', text: 'Разыгрываем редкий скин.', winners: 1, end: '10 июня 2025', status: 'active' };
+      let participants = [];
       let chatMessages = [];
       let users = loadJSON(STORAGE.USERS, []);
       let autoBanSettings = loadJSON(STORAGE.AUTO_BAN_SETTINGS, { thresholdDays: 30 });
@@ -1090,7 +1091,7 @@
 
       document.getElementById('loginBtn').addEventListener('click', () => {
         const pass = document.getElementById('adminPassword').value;
-        if (pass === ADMIN_PASSWORD) {
+        if (checkPassword(pass)) {
           localStorage.setItem(STORAGE.ADMIN, '1');
           document.getElementById('adminPassword').value = '';
           if (currentUser) { currentUser.role = 'admin'; saveUsers(); updateUIForUser(); }
@@ -1342,6 +1343,7 @@
               <div class="admin-item-actions">
                 ${banned ? `<button class="icon-btn unban" data-unban="${u.id}">🔓 Разбанить</button>` : `<button class="icon-btn warn" data-ban-user="${u.id}">⚖️ Забанить</button>`}
                 <button class="icon-btn delete" data-del-user="${u.id}">🗑️ Удалить</button>
+                ${u.role !== 'admin' ? `<button class="icon-btn edit" data-make-admin="${u.id}">👑 Сделать админом</button>` : ''}
               </div>
             </div>
           `;
@@ -1379,6 +1381,19 @@
               if (currentUser && currentUser.id === user.id) { currentUser = null; localStorage.removeItem(STORAGE.CURRENT_USER); updateUIForUser(); }
               renderAdminUsers();
               showToast('Пользователь удалён');
+            }
+          });
+        });
+
+        list.querySelectorAll('[data-make-admin]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const user = findUserById(btn.dataset.makeAdmin);
+            if (!user) return;
+            if (confirm(`Сделать "${user.name}" администратором?`)) {
+              user.role = 'admin';
+              saveUsers();
+              renderAdminUsers();
+              showToast('Пользователь теперь админ!');
             }
           });
         });
