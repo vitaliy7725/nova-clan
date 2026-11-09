@@ -253,8 +253,25 @@
         <div class="badge">⚡ ОФИЦИАЛЬНЫЙ САЙТ КЛАНА</div>
         <h2>NOVA</h2>
         <p>Мы — сообщество, где каждый может проявить себя. Сила в единстве, будущее — в нас.</p>
-        <button class="btn" data-page="giveaway">🎁 Участвовать в розыгрыше</button>
+        
+        <!-- БЛОК ДЛЯ ГОСТЕЙ (если не авторизован) -->
+        <div id="homeAuthBlock" style="margin-bottom: 20px;">
+          <button class="btn btn-tg" id="homeLoginBtn" style="font-size: 1.2rem; padding: 15px 40px;">
+            ✈️ Войти через Telegram
+          </button>
+          <p style="margin-top: 10px; font-size: 0.85rem; color: #6e7681;">
+            Нажмите кнопку, чтобы войти или зарегистрироваться
+          </p>
+        </div>
+
+        <!-- БЛОК ДЛЯ АВТОРИЗОВАННЫХ -->
+        <div id="homeWelcomeBlock" style="display:none; margin-bottom: 20px;">
+          <p style="font-size: 1.2rem; color: #3fb950; font-weight: 600;">С возвращением, <span id="homeUserName">Игрок</span>!</p>
+        </div>
+
+        <button class="btn" data-page="giveaway" style="margin-top: 10px;">🎁 Участвовать в розыгрыше</button>
       </section>
+      
       <section>
         <div class="section-title">📅 Ближайшие события</div>
         <div class="news-grid" id="homeEvents"></div>
@@ -569,7 +586,7 @@
       // ============================================
       // НАСТРОЙКИ
       // ============================================
-      const BOT_USERNAME = 'Vitaliy4635BOT'; // Твой бот вписан сюда
+      const BOT_USERNAME = 'Vitaliy4635BOT'; 
       
       const ADMIN_PASSWORD_HASH = '7b8b965ad4bca0e41ab51de7b31363a1';
       function checkPassword(input) {
@@ -578,7 +595,6 @@
         return hash === ADMIN_PASSWORD_HASH;
       }
 
-      // ТВОЙ КОНФИГ FIREBASE
       const firebaseConfig = {
         apiKey: "AIzaSyD7dDwzJgTz-jJJmrntoZmfcTk9nDx2Zls",
         authDomain: "nova-clan-91b20.firebaseapp.com",
@@ -599,27 +615,6 @@
         AUTO_BAN_SETTINGS: 'nova_autoban_settings'
       };
 
-      // ============================================
-      // АНТИСПАМ
-      // ============================================
-      const BAD_WORDS = ['дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок', 'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество', 'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный'];
-      const BLOCKED_WORDS_IN_TEXT = ['купи', 'продам', 'продаю', 'продажа', 'скидк', 'бесплатно', 'халяв', 'заработ', 'подработ', 'казин', 'ставк', 'букмекер', 'крипт', 'биткоин', 'биткойн', 'донат', 'инвестиц', 'пассивный доход', 'перейди по ссылке', 'переходи по ссылке', 'жми на ссылку', 'жми сюда', 'подпишись', 'подписывайся', 'подписка', 'реклама', 'рекламк', 'розыгрыш призов', 'розыгрыш денег', 'халявные', 'бесплатные скины', 'промокод', 'промо-код', 'промо код', 'взлом', 'взломать', 'читы', 'читер', 'чит на', 'бесплатный чит'];
-      const BLOCKED_DOMAINS = ['vk.com', 'vk.ru', 'vkontakte', 'ok.ru', 'odnoklassniki', 't.me', 'telegram.me', 'telegram.org', 'whatsapp', 'wa.me', 'youtube.com', 'youtu.be', 'instagram.com', 'insta', 'facebook.com', 'fb.com', 'tiktok.com', 'twitter.com', 'x.com', 'discord.gg', 'discord.com', 'twitch.tv', 'rutube.ru', 'dzen.ru', 'zen.yandex', 'yandex.ru', 'google.com', 'google.ru', 'gmail.com', 'mail.ru', 'rambler.ru', 'yahoo.com', 'avito.ru', 'ozon.ru', 'wildberries.ru', 'aliexpress', 'steamcommunity.com', 'steampowered.com', 'epicgames.com', 'roblox.com', 'minecraft.net', 'brawl-stars', 'clashroyale', 'donate', 'donation', 'qiwi', 'webmoney', 'yoomoney', 'paypal', 'casino', 'kazino', 'казино', 'ставки', 'букмекер', '1xbet', 'betwinner', 'crypto', 'bitcoin', 'binance', 'usdt', 'eth', 'btc', 'free-money', 'халява', 'заработок', 'подработка'];
-
-      function normalizeText(text) { return text; } 
-      function containsLink(text) { return false; } 
-      function containsBadWords(text) { return false; } 
-      function checkSpam(text) { return { ok: true, reason: '' }; } 
-
-      // ============================================
-      // ХРАНИЛИЩЕ И ДАННЫЕ
-      // ============================================
-      function loadJSON(key, fallback) {
-        try { const raw = localStorage.getItem(key); if (raw) return JSON.parse(raw); } catch (e) {}
-        return typeof fallback === 'function' ? fallback() : JSON.parse(JSON.stringify(fallback));
-      }
-      function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
-
       let newsList = [];
       let giveaway = { title: 'Скин «Дракон»', text: 'Разыгрываем редкий скин.', winners: 1, end: '10 июня 2025', status: 'active' };
       let participants = [];
@@ -628,26 +623,25 @@
       let autoBanSettings = loadJSON(STORAGE.AUTO_BAN_SETTINGS, { thresholdDays: 30 });
       let currentUser = loadJSON(STORAGE.CURRENT_USER, null);
 
+      function loadJSON(key, fallback) {
+        try { const raw = localStorage.getItem(key); if (raw) return JSON.parse(raw); } catch (e) {}
+        return typeof fallback === 'function' ? fallback() : JSON.parse(JSON.stringify(fallback));
+      }
+      function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
       db.ref('users').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
            const uniqueUsersMap = {};
-           Object.values(data).forEach(u => {
-             if (u && u.id) uniqueUsersMap[u.id] = u;
-           });
+           Object.values(data).forEach(u => { if (u && u.id) uniqueUsersMap[u.id] = u; });
            users = Object.values(uniqueUsersMap);
-        } else {
-           users = [];
-        }
+        } else { users = []; }
         
         if (document.getElementById('page-players').classList.contains('active')) renderPlayers();
         if (document.getElementById('page-admin').classList.contains('active')) renderAdminUsers();
         if (document.getElementById('page-chat').classList.contains('active')) updateChatOnlineCount();
       });
 
-      // ============================================
-      // ПОЛЬЗОВАТЕЛИ
-      // ============================================
       function findUser(nameOrTgId) {
         if (!nameOrTgId) return null;
         const q = String(nameOrTgId).trim().toLowerCase();
@@ -662,7 +656,6 @@
         }
         return true;
       }
-      
       function saveUsers() { 
         const usersObject = {};
         users.forEach(u => { usersObject[u.id] = u; });
@@ -671,7 +664,6 @@
 
       function loginUser(name, tgId) {
         let user = findUser(tgId) || findUser(name);
-        
         if (!user) {
           user = {
             id: 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -697,9 +689,6 @@
         switchPage('home');
       }
 
-      // ============================================
-      // ЭЛЕМЕНТЫ
-      // ============================================
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('menuOverlay');
       const openBtn = document.getElementById('openSidebar');
@@ -710,9 +699,6 @@
 
       const titles = { home: 'Главная', news: 'Новости', players: 'Игроки', giveaway: 'Розыгрыш', chat: 'Чат', admin: 'Админ-панель', auth: 'Вход / Регистрация', profile: 'Профиль' };
 
-      // ============================================
-      // МЕНЮ И НАВИГАЦИЯ
-      // ============================================
       function openMenu() { sidebar.classList.add('open'); overlay.classList.add('active'); }
       function closeMenu() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
       openBtn.addEventListener('click', openMenu);
@@ -948,6 +934,11 @@
       function updateUIForUser() {
         const sidebarUser = document.getElementById('sidebarUser');
         const topbarUserName = document.getElementById('topbarUserName');
+        
+        const homeAuthBlock = document.getElementById('homeAuthBlock');
+        const homeWelcomeBlock = document.getElementById('homeWelcomeBlock');
+        const homeUserName = document.getElementById('homeUserName');
+
         if (currentUser) {
           sidebarUser.style.display = 'flex';
           const initial = currentUser.name.charAt(0).toUpperCase();
@@ -966,9 +957,20 @@
           
           if (isBanned(currentUser)) roleEl.innerHTML = 'Игрок <span class="ban-badge">🚫 BAN</span>';
           topbarUserName.textContent = currentUser.name;
+
+          // Скрываем кнопку входа на главной, показываем приветствие
+          if (homeAuthBlock) homeAuthBlock.style.display = 'none';
+          if (homeWelcomeBlock) {
+            homeWelcomeBlock.style.display = 'block';
+            if (homeUserName) homeUserName.textContent = currentUser.name;
+          }
         } else {
           sidebarUser.style.display = 'none';
           topbarUserName.textContent = 'Гость';
+
+          // Показываем кнопку входа на главной
+          if (homeAuthBlock) homeAuthBlock.style.display = 'block';
+          if (homeWelcomeBlock) homeWelcomeBlock.style.display = 'none';
         }
       }
 
@@ -991,6 +993,7 @@
         switchPage('profile');
       };
 
+      // Инициализация виджета на странице авторизации
       (function initTelegramWidget() {
         const container = document.getElementById('telegram-login-container');
         if (!container) return;
@@ -1017,6 +1020,12 @@
       }, 4000);
 
       document.getElementById('chatLoginBtn').addEventListener('click', () => switchPage('auth'));
+      
+      // Кнопка входа на главной (просто перекидывает на страницу авторизации)
+      const homeLoginBtn = document.getElementById('homeLoginBtn');
+      if (homeLoginBtn) {
+        homeLoginBtn.addEventListener('click', () => switchPage('auth'));
+      }
 
       // ============================================
       // ЧАТ (Firebase Realtime)
@@ -1506,13 +1515,6 @@
       // ============================================
       renderPublicNews();
       renderPublicGiveaway();
-      
-      // ВОССТАНОВЛЕНИЕ СЕССИИ ПРИ ЗАГРУЗКЕ
-      if (currentUser) {
-        currentUser.lastVisit = new Date().toISOString();
-        saveUsers();
-      }
-      
       updateUIForUser();
       updateLastVisit();
       
