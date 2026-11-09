@@ -169,6 +169,17 @@
     .role-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(88, 166, 255, 0.12); color: #58a6ff; font-size: 0.7rem; padding: 1px 8px; border-radius: 20px; border: 1px solid rgba(88, 166, 255, 0.3); margin-left: 6px; text-transform: uppercase; font-weight: 600; }
     .role-badge.admin { background: rgba(218, 54, 51, 0.15); color: #f85149; border-color: rgba(218, 54, 51, 0.4); }
     .footer { text-align: center; padding: 24px 20px; border-top: 1px solid #21262d; color: #6e7681; font-size: 0.85rem; }
+    
+    /* Стили для онлайна в профиле игрока */
+    .online-indicator {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .online-indicator.online { background: #3fb950; box-shadow: 0 0 6px #3fb950; }
+    .online-indicator.offline { background: #6e7681; }
+
     @media (max-width: 600px) {
       .hero { padding: 30px 18px; }
       .hero h2 { font-size: 2rem; letter-spacing: 3px; }
@@ -668,21 +679,29 @@
       let giveaway = { title: 'Скин «Дракон»', text: 'Разыгрываем редкий скин.', winners: 1, end: '10 июня 2025', status: 'active' };
       let participants = [];
       let chatMessages = [];
-      let users = []; // Теперь это массив, который заполняется из Firebase
+      let users = [];
       let autoBanSettings = loadJSON(STORAGE.AUTO_BAN_SETTINGS, { thresholdDays: 30 });
       let currentUser = loadJSON(STORAGE.CURRENT_USER, null);
 
-      // Загружаем игроков из Firebase в реальном времени
+      // Загружаем игроков из Firebase
       db.ref('users').on('value', (snapshot) => {
         const data = snapshot.val();
         users = data ? data : [];
         
-        // Обновляем интерфейс, если мы на странице игроков или в админке
+        // Обновляем интерфейс при изменении данных
         if (document.getElementById('page-players').classList.contains('active')) {
           renderPlayers();
         }
         if (document.getElementById('page-admin').classList.contains('active')) {
           renderAdminUsers();
+        }
+        // Если текущий пользователь обновился в базе, обновляем его локальную копию
+        if (currentUser) {
+          const updatedCurrent = users.find(u => u.id === currentUser.id);
+          if (updatedCurrent) {
+            currentUser = updatedCurrent;
+            updateUIForUser();
+          }
         }
       });
 
@@ -704,7 +723,6 @@
         return true;
       }
       
-      // Сохраняем всех пользователей в Firebase
       function saveUsers() { 
         db.ref('users').set(users);
       }
@@ -793,8 +811,23 @@
       }
 
       // ============================================
-      // ИГРОКИ
+      // ИГРОКИ (с онлайном)
       // ============================================
+      function timeAgo(dateString) {
+        if (!dateString) return 'давно';
+        const date = new Date(dateString);
+        const now = new Date();
+        const seconds = Math.floor((now - date) / 1000);
+        
+        if (seconds < 60) return 'только что';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes} мин. назад`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours} ч. назад`;
+        const days = Math.floor(hours / 24);
+        return `${days} дн. назад`;
+      }
+
       function renderPlayers() {
         const list = document.getElementById('playersList');
         if (!list) return;
@@ -805,6 +838,12 @@
         }
 
         const sorted = [...users].sort((a, b) => {
+          // Сначала онлайн, потом админы, потом остальные
+          const aOnline = (new Date() - new Date(a.lastVisit || 0)) < 120000; // 2 минуты
+          const bOnline = (new Date() - new Date(b.lastVisit || 0)) < 120000;
+          if (aOnline && !bOnline) return -1;
+          if (!aOnline && bOnline) return 1;
+          
           if (a.role === 'admin' && b.role !== 'admin') return -1;
           if (a.role !== 'admin' && b.role === 'admin') return 1;
           return new Date(b.createdAt) - new Date(a.createdAt);
@@ -813,6 +852,8 @@
         list.innerHTML = sorted.map(u => {
           const banned = isBanned(u);
           const initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
+          const isOnline = (new Date() - new Date(u.lastVisit || 0)) < 120000;
+          const lastSeenText = timeAgo(u.lastVisit);
           
           let avatarHtml = `<div style="width:50px;height:50px;border-radius:50%;background:rgba(88,166,255,0.15);color:#58a6ff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;border:1px solid rgba(88,166,255,0.3);margin:0 auto 10px;">${initial}</div>`;
           
@@ -824,7 +865,10 @@
             <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px;text-align:center;${banned ? 'opacity:0.6;' : ''}">
               ${avatarHtml}
               <div style="color:#c9d1d9;font-weight:600;font-size:1rem;margin-bottom:4px;">${escapeHtml(u.name)}</div>
-              <div style="color:#6e7681;font-size:0.8rem;margin-bottom:8px;">В клане с ${new Date(u.createdAt).toLocaleDateString('ru-RU')}</div>
+              <div style="font-size:0.8rem;margin-bottom:8px;color:${isOnline ? '#3fb950' : '#6e7681'};">
+                <span class="online-indicator ${isOnline ? 'online' : 'offline'}"></span>
+                ${isOnline ? 'В сети' : lastSeenText}
+              </div>
               <div>
                 ${u.role === 'admin' ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);">👑 Админ</span>' : '<span style="background:rgba(88,166,255,0.12);color:#58a6ff;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(88,166,255,0.3);">Игрок</span>'}
                 ${banned ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);margin-left:4px;">🚫 Бан</span>' : ''}
@@ -1488,7 +1532,12 @@
         } else { showToast('Нет пользователей для авто-бана'); }
       });
 
-      function updateLastVisit() { if (currentUser) { currentUser.lastVisit = new Date().toISOString(); saveUsers(); } }
+      function updateLastVisit() { 
+        if (currentUser) { 
+          currentUser.lastVisit = new Date().toISOString(); 
+          saveUsers(); 
+        } 
+      }
 
       window.switchPage = switchPage;
       window.logoutUser = logoutUser;
@@ -1500,7 +1549,9 @@
       renderPublicGiveaway();
       updateUIForUser();
       updateLastVisit();
-      setInterval(updateLastVisit, 60000);
+      
+      // Обновляем lastVisit каждые 30 секунд, чтобы показывать "онлайн"
+      setInterval(updateLastVisit, 30000);
 
     })();
   </script>
