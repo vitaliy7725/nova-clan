@@ -586,7 +586,6 @@
 
       const STORAGE = {
         ADMIN: 'nova_admin_logged',
-        USERS: 'nova_users_v1',
         CURRENT_USER: 'nova_current_user',
         AUTO_BAN_SETTINGS: 'nova_autoban_settings'
       };
@@ -669,9 +668,23 @@
       let giveaway = { title: 'Скин «Дракон»', text: 'Разыгрываем редкий скин.', winners: 1, end: '10 июня 2025', status: 'active' };
       let participants = [];
       let chatMessages = [];
-      let users = loadJSON(STORAGE.USERS, []);
+      let users = []; // Теперь это массив, который заполняется из Firebase
       let autoBanSettings = loadJSON(STORAGE.AUTO_BAN_SETTINGS, { thresholdDays: 30 });
       let currentUser = loadJSON(STORAGE.CURRENT_USER, null);
+
+      // Загружаем игроков из Firebase в реальном времени
+      db.ref('users').on('value', (snapshot) => {
+        const data = snapshot.val();
+        users = data ? data : [];
+        
+        // Обновляем интерфейс, если мы на странице игроков или в админке
+        if (document.getElementById('page-players').classList.contains('active')) {
+          renderPlayers();
+        }
+        if (document.getElementById('page-admin').classList.contains('active')) {
+          renderAdminUsers();
+        }
+      });
 
       // ============================================
       // ПОЛЬЗОВАТЕЛИ
@@ -690,7 +703,11 @@
         }
         return true;
       }
-      function saveUsers() { saveJSON(STORAGE.USERS, users); }
+      
+      // Сохраняем всех пользователей в Firebase
+      function saveUsers() { 
+        db.ref('users').set(users);
+      }
 
       function loginUser(name, tgId) {
         let user = findUser(name) || (tgId ? findUser(tgId) : null);
@@ -701,11 +718,14 @@
             createdAt: new Date().toISOString(), lastVisit: new Date().toISOString(),
             banned: false, banReason: '', banUntil: null, coins: 100, avatar: ''
           };
-          users.push(user); saveUsers();
+          users.push(user); 
+          saveUsers();
         } else {
-          user.lastVisit = new Date().toISOString(); saveUsers();
+          user.lastVisit = new Date().toISOString(); 
+          saveUsers();
         }
-        currentUser = user; saveJSON(STORAGE.CURRENT_USER, currentUser);
+        currentUser = user; 
+        saveJSON(STORAGE.CURRENT_USER, currentUser);
         return user;
       }
       function logoutUser() {
