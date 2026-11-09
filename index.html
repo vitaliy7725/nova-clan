@@ -263,12 +263,7 @@
     <div class="page" id="page-players">
       <section>
         <div class="section-title">👥 Наши игроки</div>
-        <div class="players-placeholder">
-          <span class="big-icon">🕵️</span>
-          <h3>Список пока пуст</h3>
-          <p>Здесь будет отображаться реальный состав клана NOVA. Мы не добавляем фейковых участников — только настоящие бойцы.</p>
-          <span class="note">🛡️ Честный состав</span>
-        </div>
+        <div id="playersList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;"></div>
       </section>
     </div>
 
@@ -761,6 +756,7 @@
         if (pageId === 'giveaway') renderPublicGiveaway();
         if (pageId === 'chat') renderChat();
         if (pageId === 'profile') renderProfile();
+        if (pageId === 'players') renderPlayers();
       }
 
       navLinks.forEach(link => {
@@ -774,6 +770,48 @@
 
       function escapeHtml(str) {
         return String(str).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+      }
+
+      // ============================================
+      // ИГРОКИ
+      // ============================================
+      function renderPlayers() {
+        const list = document.getElementById('playersList');
+        if (!list) return;
+
+        if (!users.length) {
+          list.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;">Пока нет игроков. Войдите через Telegram, чтобы стать первым!</div>';
+          return;
+        }
+
+        const sorted = [...users].sort((a, b) => {
+          if (a.role === 'admin' && b.role !== 'admin') return -1;
+          if (a.role !== 'admin' && b.role === 'admin') return 1;
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
+        list.innerHTML = sorted.map(u => {
+          const banned = isBanned(u);
+          const initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
+          
+          let avatarHtml = `<div style="width:50px;height:50px;border-radius:50%;background:rgba(88,166,255,0.15);color:#58a6ff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;border:1px solid rgba(88,166,255,0.3);margin:0 auto 10px;">${initial}</div>`;
+          
+          if (u.avatar) {
+            avatarHtml = `<img src="${escapeHtml(u.avatar)}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;margin:0 auto 10px;border:1px solid rgba(88,166,255,0.3);display:block;">`;
+          }
+
+          return `
+            <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px;text-align:center;${banned ? 'opacity:0.6;' : ''}">
+              ${avatarHtml}
+              <div style="color:#c9d1d9;font-weight:600;font-size:1rem;margin-bottom:4px;">${escapeHtml(u.name)}</div>
+              <div style="color:#6e7681;font-size:0.8rem;margin-bottom:8px;">В клане с ${new Date(u.createdAt).toLocaleDateString('ru-RU')}</div>
+              <div>
+                ${u.role === 'admin' ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);">👑 Админ</span>' : '<span style="background:rgba(88,166,255,0.12);color:#58a6ff;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(88,166,255,0.3);">Игрок</span>'}
+                ${banned ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);margin-left:4px;">🚫 Бан</span>' : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
       }
 
       // ============================================
