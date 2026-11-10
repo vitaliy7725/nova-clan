@@ -180,6 +180,8 @@
     .icon-btn.delete:hover { border-color: #f85149; color: #f85149; }
     .icon-btn.warn:hover { border-color: #d29922; color: #d29922; }
     .icon-btn.unban:hover { border-color: #3fb950; color: #3fb950; }
+    .icon-btn.win { border-color: #3fb950; color: #3fb950; background: rgba(63,185,80,0.1); }
+    .icon-btn.win:hover { background: rgba(63,185,80,0.2); }
     .empty-state { text-align: center; padding: 30px; color: #6e7681; font-style: italic; }
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #238636; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.5); opacity: 0; transition: 0.3s; z-index: 2000; max-width: 90%; text-align: center; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -609,7 +611,7 @@
 
   <footer class="footer">
     <p>⭐ Клан NOVA — вместе мы сила ⭐</p>
-    <p style="margin-top: 8px; font-size: 0.8rem;">© 2025 NOVA. Все права защищены.</p>
+    <p style="margin-top: 8px; font-size: 0.8rem;">© 2026 NOVA. Все права защищены.</p>
   </footer>
 
   <div class="toast" id="toast"></div>
@@ -645,24 +647,15 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
-      // УЛУЧШЕННОЕ ФОРМАТИРОВАНИЕ ВРЕМЕНИ
       function formatTime(timeValue) {
         if (!timeValue) return '';
-        
-        // Если время пришло в формате "HH:MM" (старые сообщения) - просто возвращаем
         if (typeof timeValue === 'string' && timeValue.includes(':') && !timeValue.includes('T')) {
           return timeValue;
         }
-
         try {
           const date = new Date(timeValue);
-          if (isNaN(date.getTime())) return '--:--'; // Если не удалось распарсить
-          
-          return date.toLocaleTimeString('ru-RU', { 
-            timeZone: 'Europe/Moscow', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          });
+          if (isNaN(date.getTime())) return '--:--';
+          return date.toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit' });
         } catch (e) {
           return '--:--';
         }
@@ -701,8 +694,6 @@
         
         if (document.getElementById('page-players').classList.contains('active')) renderPlayers();
         if (document.getElementById('page-admin').classList.contains('active')) renderAdminUsers();
-        
-        // Обновляем счетчик онлайна при любом изменении базы
         updateChatOnlineCount();
       });
 
@@ -949,7 +940,14 @@
           const data = snapshot.val();
           participants = data ? Object.values(data) : [];
           if (participants.length) {
-            participantsEl.innerHTML = participants.map(p => `<div class="participant-row"><div class="name">👤 ${escapeHtml(p.name)}</div><div class="date">${escapeHtml(p.date || '')}</div></div>`).join('');
+            participantsEl.innerHTML = participants.map(p => `
+              <div class="participant-row" style="${p.isWinner ? 'border-color: #3fb950; background: rgba(63,185,80,0.05);' : ''}">
+                <div class="name" style="${p.isWinner ? 'color: #3fb950;' : ''}">
+                  ${p.isWinner ? '🏆' : '👤'} ${escapeHtml(p.name)}
+                </div>
+                <div class="date">${escapeHtml(p.date || '')}</div>
+              </div>
+            `).join('');
           } else {
             participantsEl.innerHTML = '<div class="empty-state">Пока никто не участвует. Будь первым!</div>';
           }
@@ -1135,7 +1133,6 @@
         let onlineCount = 0;
         const now = new Date();
         users.forEach(u => {
-          // Если lastVisit есть и он был менее 2 минут назад
           if (u.lastVisit && (now - new Date(u.lastVisit)) < 120000) {
             onlineCount++;
           }
@@ -1143,7 +1140,6 @@
         if (chatOnlineCount) chatOnlineCount.textContent = onlineCount + ' онлайн';
       }
 
-      // Слушаем статус "печатает"
       db.ref('typing').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) {
@@ -1188,7 +1184,6 @@
               if (isOwn) classes.push('own');
               if (m.isAdmin) classes.push('admin');
               
-              // ИСПОЛЬЗУЕМ НОВУЮ ФУНКЦИЮ ДЛЯ ВРЕМЕНИ
               const displayTime = m.time ? formatTime(m.time) : '';
 
               return `<div class="${classes.join(' ')}"><div class="chat-avatar">${escapeHtml(initial)}</div><div class="chat-body"><div class="chat-meta"><span class="chat-name">${escapeHtml(m.name)}</span><span class="chat-time">${escapeHtml(displayTime)}</span></div><div class="chat-text">${escapeHtml(m.text)}</div></div></div>`;
@@ -1212,7 +1207,7 @@
         db.ref('chat').push({
           name: currentUser.name,
           text: text,
-          time: new Date().toISOString(), // Сохраняем как ISO строку
+          time: new Date().toISOString(),
           isAdmin: isAdminLogged() || currentUser.role === 'admin'
         }).then(() => {
           chatInput.value = '';
@@ -1349,7 +1344,7 @@
         e.preventDefault();
         const name = document.getElementById('partName').value.trim();
         if (!name) return;
-        db.ref('participants').push({ name, date: new Date().toLocaleDateString('ru-RU') }).then(() => {
+        db.ref('participants').push({ name, date: new Date().toLocaleDateString('ru-RU'), isWinner: false }).then(() => {
           document.getElementById('partName').value = '';
           showToast('Участник добавлен');
         });
@@ -1359,9 +1354,35 @@
         const list = document.getElementById('adminParticipantsList');
         db.ref('participants').on('value', (snapshot) => {
           const data = snapshot.val();
-          participants = data ? Object.values(data) : [];
+          participants = data ? Object.entries(data).map(([id, val]) => ({ ...val, id })) : [];
           if (!participants.length) { list.innerHTML = '<div class="empty-state">Пока нет участников</div>'; return; }
-          list.innerHTML = participants.map(p => `<div class="admin-item"><div class="admin-item-info"><h4>👤 ${escapeHtml(p.name)}</h4><div class="meta"><span>📅 ${escapeHtml(p.date || '')}</span></div></div></div>`).join('');
+          
+          list.innerHTML = participants.map(p => `
+            <div class="admin-item" style="${p.isWinner ? 'border-color: #3fb950;' : ''}">
+              <div class="admin-item-info">
+                <h4>${p.isWinner ? '🏆' : '👤'} ${escapeHtml(p.name)} ${p.isWinner ? '<span style="color: #3fb950; font-size: 0.8rem;">(Победитель)</span>' : ''}</h4>
+                <div class="meta"><span>📅 ${escapeHtml(p.date || '')}</span></div>
+              </div>
+              <div class="admin-item-actions">
+                <button class="icon-btn ${p.isWinner ? 'win' : ''}" data-toggle-winner="${p.id}">
+                  ${p.isWinner ? 'Отменить победу' : '🏆 Победитель'}
+                </button>
+              </div>
+            </div>
+          `).join('');
+
+          list.querySelectorAll('[data-toggle-winner]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const id = btn.dataset.toggleWinner;
+              const p = participants.find(x => x.id === id);
+              if (!p) return;
+              
+              const newStatus = !p.isWinner;
+              db.ref('participants/' + id).update({ isWinner: newStatus }).then(() => {
+                showToast(newStatus ? 'Участник назначен победителем!' : 'Статус победителя снят');
+              });
+            });
+          });
         });
       }
 
@@ -1648,7 +1669,6 @@
       
       setInterval(updateLastVisit, 30000);
 
-      // Убираем статус "печатает" при закрытии вкладки
       window.addEventListener('beforeunload', () => {
         if (currentUser) {
           db.ref('typing/' + currentUser.id).remove();
