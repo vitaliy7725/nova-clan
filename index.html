@@ -467,7 +467,7 @@
           <button class="admin-tab" data-tab="news-list">📋 Список новостей</button>
           <button class="admin-tab" data-tab="chat-admin">💬 Модерация чата</button>
           <button class="admin-tab" data-tab="users-admin">👥 Пользователи / Баны</button>
-          <button class="admin-tab" data-tab="reminders">🔔 Напоминания</button>
+          <button class="admin-tab" data-tab="announcements">📢 Объявления</button>
         </div>
 
         <div class="admin-tab-content active" id="tab-giveaway">
@@ -653,47 +653,29 @@
           </div>
         </div>
 
-        <div class="admin-tab-content" id="tab-reminders">
+        <div class="admin-tab-content" id="tab-announcements">
           <div class="admin-panel">
-            <h2>🔔 Напоминания о сайте</h2>
+            <h2>📢 Объявление всем игрокам</h2>
             <p style="color:#8b949e;font-size:0.9rem;margin-bottom:16px;">
-              Настрой, когда игрокам будут приходить Push-уведомления с напоминанием зайти на сайт.
+              Отправьте текст, и у всех, кто сейчас на сайте, всплывёт уведомление.
             </p>
-            <form id="reminderForm">
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Начало напоминаний</label>
-                  <input type="time" id="reminderStart" value="10:00">
-                </div>
-                <div class="form-group">
-                  <label>Конец напоминаний</label>
-                  <input type="time" id="reminderEnd" value="19:00">
-                </div>
+            <form id="announcementForm">
+              <div class="form-group">
+                <label>Заголовок</label>
+                <input type="text" id="announcementTitle" value="Клан NOVA" placeholder="Заголовок уведомления">
               </div>
               <div class="form-group">
-                <label>Интервал (каждые N часов)</label>
-                <input type="number" id="reminderInterval" value="2" min="1" max="12">
-              </div>
-              <div class="form-group">
-                <label>Текст уведомления</label>
-                <input type="text" id="reminderText" value="Заходи в клан NOVA! Тебя ждут новые события." placeholder="Текст напоминания...">
+                <label>Текст объявления *</label>
+                <textarea id="announcementText" required placeholder="Например: Заходи в клан! Новые события!"></textarea>
               </div>
               <div class="form-actions">
-                <button type="submit" class="btn">💾 Сохранить настройки</button>
-                <button type="button" class="btn btn-secondary" id="testReminderBtn">🧪 Тест</button>
+                <button type="submit" class="btn">📢 Отправить всем</button>
+                <button type="button" class="btn btn-secondary" id="clearAnnouncementBtn">🗑️ Убрать баннер</button>
               </div>
             </form>
-            <div style="margin-top:16px;padding:12px;background:rgba(88,166,255,0.05);border:1px solid #30363d;border-radius:8px;">
-              <p style="color:#8b949e;font-size:0.85rem;margin-bottom:8px;">
-                <strong style="color:#58a6ff;">Как это работает:</strong>
-              </p>
-              <ul style="color:#8b949e;font-size:0.85rem;padding-left:20px;">
-                <li>Уведомление приходит, когда сайт открыт и активен.</li>
-                <li>Если вкладка свёрнута — уведомление не придёт (браузер засыпает).</li>
-                <li>Не спамит: интервал защищает от частых уведомлений.</li>
-                <li>Ночью (вне интервала) не беспокоит.</li>
-              </ul>
-            </div>
+            <p style="color:#6e7681;font-size:0.8rem;margin-top:12px;">
+              * Уведомление появится у всех, кто сейчас на сайте. Если у игрока вкладка свёрнута — он увидит при возвращении.
+            </p>
           </div>
         </div>
       </div>
@@ -756,8 +738,7 @@
       const STORAGE = {
         ADMIN: 'nova_admin_logged',
         CURRENT_USER: 'nova_current_user',
-        AUTO_BAN_SETTINGS: 'nova_autoban_settings',
-        REMINDERS: 'nova_reminders'
+        AUTO_BAN_SETTINGS: 'nova_autoban_settings'
       };
 
       let newsList = [];
@@ -767,12 +748,6 @@
       let users = [];
       let autoBanSettings = loadJSON(STORAGE.AUTO_BAN_SETTINGS, { thresholdDays: 30 });
       let currentUser = loadJSON(STORAGE.CURRENT_USER, null);
-      let remindersSettings = loadJSON(STORAGE.REMINDERS, {
-        start: '10:00',
-        end: '19:00',
-        interval: 2,
-        text: 'Заходи в клан NOVA! Тебя ждут новые события.'
-      });
       
       let typingTimeout = null;
       let isTyping = false;
@@ -909,13 +884,13 @@
       // ============================================
       // УВЕДОМЛЕНИЯ
       // ============================================
-      function showNotification(name, text) {
+      function showNotification(name, text, isAnnouncement) {
         if ('Notification' in window && Notification.permission === 'granted') {
           try {
-            new Notification('NOVA: ' + name, {
+            new Notification(name, {
               body: text,
               icon: 'logo.png',
-              tag: 'nova-chat'
+              tag: isAnnouncement ? 'nova-announcement' : 'nova-chat'
             });
           } catch (e) {
             console.log('Push error:', e);
@@ -925,16 +900,19 @@
         const container = document.getElementById('notification-container');
         const notif = document.createElement('div');
         notif.className = 'notification-item';
+        if (isAnnouncement) {
+          notif.style.borderLeftColor = '#da3633';
+        }
         
         notif.innerHTML = `
-          <div class="notification-title">
-            <span>💬</span> ${escapeHtml(name)}
+          <div class="notification-title" style="${isAnnouncement ? 'color: #da3633;' : ''}">
+            <span>${isAnnouncement ? '📢' : '💬'}</span> ${escapeHtml(name)}
           </div>
           <div class="notification-text">${escapeHtml(text)}</div>
         `;
         
         notif.addEventListener('click', () => {
-          switchPage('chat');
+          if (!isAnnouncement) switchPage('chat');
           notif.remove();
         });
         
@@ -945,79 +923,21 @@
             notif.style.animation = 'fadeOut 0.3s ease forwards';
             setTimeout(() => notif.remove(), 300);
           }
-        }, 5000);
+        }, isAnnouncement ? 8000 : 5000);
       }
 
-      // ============================================
-      // НАПОМИНАНИЯ (работает, когда вкладка АКТИВНА)
-      // ============================================
-      function checkReminders() {
-        if (!('Notification' in window) || Notification.permission !== 'granted') {
-          console.log('Reminder: разрешение не получено');
-          return;
-        }
+      // Слушаем объявления от админа
+      let lastAnnouncementId = null;
+      db.ref('announcement').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data || !data.text) return;
         
-        // Проверяем, что вкладка активна (не свёрнута)
-        if (document.visibilityState !== 'visible') {
-          console.log('Reminder: вкладка неактивна, пропускаем');
-          return;
-        }
+        // Если это то же объявление — не показываем
+        if (lastAnnouncementId === data.id) return;
+        lastAnnouncementId = data.id;
         
-        const now = new Date();
-        const currentHours = now.getHours();
-        const currentMinutes = now.getMinutes();
-        const currentTime = currentHours * 60 + currentMinutes;
-        
-        const [startH, startM] = remindersSettings.start.split(':').map(Number);
-        const [endH, endM] = remindersSettings.end.split(':').map(Number);
-        const startTime = startH * 60 + startM;
-        const endTime = endH * 60 + endM;
-        
-        // Не в интервале - пропускаем
-        if (currentTime < startTime || currentTime > endTime) {
-          console.log('Reminder: сейчас ' + currentHours + ':' + currentMinutes + ', не в интервале ' + remindersSettings.start + '-' + remindersSettings.end);
-          return;
-        }
-        
-        // Проверяем, когда отправляли последнее напоминание
-        const lastReminderStr = localStorage.getItem('nova_last_reminder');
-        const nowMs = Date.now();
-        
-        if (lastReminderStr) {
-          const lastReminderMs = parseInt(lastReminderStr);
-          const hoursSinceLast = (nowMs - lastReminderMs) / (1000 * 60 * 60);
-          
-          if (hoursSinceLast < remindersSettings.interval) {
-            console.log('Reminder: прошло только ' + hoursSinceLast.toFixed(2) + ' ч, ждём ' + remindersSettings.interval);
-            return;
-          }
-        }
-        
-        // Отправляем
-        try {
-          new Notification('Клан NOVA', {
-            body: remindersSettings.text,
-            icon: 'logo.png',
-            tag: 'nova-reminder'
-          });
-          localStorage.setItem('nova_last_reminder', nowMs.toString());
-          console.log('Reminder: уведомление отправлено!');
-        } catch (e) {
-          console.log('Reminder error:', e);
-        }
-      }
-
-      // Проверяем каждые 30 секунд
-      setInterval(checkReminders, 30 * 1000);
-      
-      // Проверяем сразу при загрузке (с задержкой, чтобы успеть получить разрешение)
-      setTimeout(checkReminders, 5000);
-
-      // Также проверяем, когда вкладка становится активной
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          setTimeout(checkReminders, 2000);
-        }
+        // Показываем объявление
+        showNotification(data.title || '📢 Объявление', data.text, true);
       });
 
       // ============================================
@@ -1421,7 +1341,7 @@
         
         if (currentUser && msg.name === currentUser.name) return;
         
-        showNotification(msg.name, msg.text);
+        showNotification(msg.name, msg.text, false);
       });
 
       function sendChatMessage() {
@@ -1496,7 +1416,6 @@
           fillGiveawayForm();
           renderAdminChat();
           renderAdminUsers();
-          fillReminderForm();
         } else {
           loginView.style.display = 'block';
           panelView.style.display = 'none';
@@ -1878,45 +1797,35 @@
       });
 
       // ============================================
-      // АДМИН: НАПОМИНАНИЯ
+      // АДМИН: ОБЪЯВЛЕНИЯ
       // ============================================
-      function fillReminderForm() {
-        document.getElementById('reminderStart').value = remindersSettings.start;
-        document.getElementById('reminderEnd').value = remindersSettings.end;
-        document.getElementById('reminderInterval').value = remindersSettings.interval;
-        document.getElementById('reminderText').value = remindersSettings.text;
-      }
-
-      document.getElementById('reminderForm').addEventListener('submit', (e) => {
+      document.getElementById('announcementForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        const start = document.getElementById('reminderStart').value;
-        const end = document.getElementById('reminderEnd').value;
-        const interval = parseInt(document.getElementById('reminderInterval').value, 10);
-        const text = document.getElementById('reminderText').value.trim();
+        const title = document.getElementById('announcementTitle').value.trim() || '📢 Объявление';
+        const text = document.getElementById('announcementText').value.trim();
         
-        if (!start || !end || !interval || interval < 1 || !text) {
-          showToast('Заполните все поля', true);
+        if (!text) {
+          showToast('Введите текст объявления', true);
           return;
         }
         
-        remindersSettings = { start, end, interval, text };
-        saveJSON(STORAGE.REMINDERS, remindersSettings);
-        showToast('Настройки напоминаний сохранены');
+        db.ref('announcement').set({
+          id: Date.now().toString(),
+          title: title,
+          text: text,
+          sentAt: new Date().toISOString(),
+          sentBy: currentUser ? currentUser.name : 'Админ'
+        }).then(() => {
+          showToast('Объявление отправлено всем!');
+          document.getElementById('announcementText').value = '';
+        });
       });
 
-      document.getElementById('testReminderBtn').addEventListener('click', () => {
-        if (!('Notification' in window) || Notification.permission !== 'granted') {
-          showToast('Разрешите уведомления в браузере!', true);
-          return;
-        }
-        try {
-          new Notification('Клан NOVA (тест)', {
-            body: remindersSettings.text,
-            icon: 'logo.png'
+      document.getElementById('clearAnnouncementBtn').addEventListener('click', () => {
+        if (confirm('Убрать баннер у всех?')) {
+          db.ref('announcement').remove().then(() => {
+            showToast('Объявление убрано');
           });
-          showToast('Тестовое уведомление отправлено');
-        } catch (e) {
-          showToast('Ошибка: ' + e.message, true);
         }
       });
 
