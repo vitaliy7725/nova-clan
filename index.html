@@ -283,7 +283,6 @@
 </head>
 <body>
 
-  <!-- Контейнер для уведомлений -->
   <div id="notification-container"></div>
 
   <div class="menu-overlay" id="menuOverlay"></div>
@@ -684,9 +683,17 @@
                 <button type="button" class="btn btn-secondary" id="testReminderBtn">🧪 Тест</button>
               </div>
             </form>
-            <p style="color:#6e7681;font-size:0.8rem;margin-top:12px;">
-              * Напоминания приходят только тем, кто разрешил уведомления. Если человек уже на сайте — напоминание пропускается.
-            </p>
+            <div style="margin-top:16px;padding:12px;background:rgba(88,166,255,0.05);border:1px solid #30363d;border-radius:8px;">
+              <p style="color:#8b949e;font-size:0.85rem;margin-bottom:8px;">
+                <strong style="color:#58a6ff;">Как это работает:</strong>
+              </p>
+              <ul style="color:#8b949e;font-size:0.85rem;padding-left:20px;">
+                <li>Уведомление приходит, когда сайт открыт и активен.</li>
+                <li>Если вкладка свёрнута — уведомление не придёт (браузер засыпает).</li>
+                <li>Не спамит: интервал защищает от частых уведомлений.</li>
+                <li>Ночью (вне интервала) не беспокоит.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -771,7 +778,6 @@
       let isTyping = false;
       let currentPage = 'home';
 
-      // Запрос разрешения на Push-уведомления
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
       }
@@ -943,10 +949,19 @@
       }
 
       // ============================================
-      // НАПОМИНАНИЯ
+      // НАПОМИНАНИЯ (работает, когда вкладка АКТИВНА)
       // ============================================
       function checkReminders() {
-        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+        if (!('Notification' in window) || Notification.permission !== 'granted') {
+          console.log('Reminder: разрешение не получено');
+          return;
+        }
+        
+        // Проверяем, что вкладка активна (не свёрнута)
+        if (document.visibilityState !== 'visible') {
+          console.log('Reminder: вкладка неактивна, пропускаем');
+          return;
+        }
         
         const now = new Date();
         const currentHours = now.getHours();
@@ -958,8 +973,11 @@
         const startTime = startH * 60 + startM;
         const endTime = endH * 60 + endM;
         
-        // Если сейчас не в заданном интервале - не напоминаем
-        if (currentTime < startTime || currentTime > endTime) return;
+        // Не в интервале - пропускаем
+        if (currentTime < startTime || currentTime > endTime) {
+          console.log('Reminder: сейчас ' + currentHours + ':' + currentMinutes + ', не в интервале ' + remindersSettings.start + '-' + remindersSettings.end);
+          return;
+        }
         
         // Проверяем, когда отправляли последнее напоминание
         const lastReminderStr = localStorage.getItem('nova_last_reminder');
@@ -969,13 +987,13 @@
           const lastReminderMs = parseInt(lastReminderStr);
           const hoursSinceLast = (nowMs - lastReminderMs) / (1000 * 60 * 60);
           
-          if (hoursSinceLast < remindersSettings.interval) return;
+          if (hoursSinceLast < remindersSettings.interval) {
+            console.log('Reminder: прошло только ' + hoursSinceLast.toFixed(2) + ' ч, ждём ' + remindersSettings.interval);
+            return;
+          }
         }
         
-        // Если пользователь сейчас на сайте и активен - не напоминаем
-        if (document.visibilityState === 'visible') return;
-        
-        // Отправляем уведомление
+        // Отправляем
         try {
           new Notification('Клан NOVA', {
             body: remindersSettings.text,
@@ -983,16 +1001,24 @@
             tag: 'nova-reminder'
           });
           localStorage.setItem('nova_last_reminder', nowMs.toString());
+          console.log('Reminder: уведомление отправлено!');
         } catch (e) {
           console.log('Reminder error:', e);
         }
       }
 
-      // Проверяем каждую минуту
-      setInterval(checkReminders, 60 * 1000);
-
-      // Проверяем сразу при загрузке (с задержкой)
+      // Проверяем каждые 30 секунд
+      setInterval(checkReminders, 30 * 1000);
+      
+      // Проверяем сразу при загрузке (с задержкой, чтобы успеть получить разрешение)
       setTimeout(checkReminders, 5000);
+
+      // Также проверяем, когда вкладка становится активной
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          setTimeout(checkReminders, 2000);
+        }
+      });
 
       // ============================================
       // ИГРОКИ
