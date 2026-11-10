@@ -81,14 +81,14 @@
     .participant-row { background: #161b22; border: 1px solid #21262d; border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .participant-row .name { display: flex; align-items: center; gap: 10px; color: #c9d1d9; font-weight: 500; }
     .participant-row .date { color: #6e7681; font-size: 0.85rem; }
-    .chat-wrapper { background: #161b22; border: 1px solid #21262d; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; height: 550px; }
+    .chat-wrapper { background: #161b22; border: 1px solid #21262d; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; height: 550px; position: relative; }
     .chat-header { padding: 16px 20px; background: #0d1117; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     .chat-header h3 { color: #58a6ff; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
     .chat-header-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
     .chat-online { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #8b949e; }
     .online-dot { width: 8px; height: 8px; background: #3fb950; border-radius: 50%; box-shadow: 0 0 8px #3fb950; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 40px; }
     .chat-message { display: flex; gap: 10px; align-items: flex-start; }
     .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(88, 166, 255, 0.15); color: #58a6ff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; border: 1px solid rgba(88, 166, 255, 0.3); overflow: hidden; }
     .chat-body { flex: 1; min-width: 0; }
@@ -99,7 +99,38 @@
     .chat-message.own .chat-name { color: #3fb950; }
     .chat-message.own .chat-avatar { background: rgba(63, 185, 80, 0.15); color: #3fb950; border-color: rgba(63, 185, 80, 0.3); }
     .chat-message.admin .chat-name::after { content: 'ADMIN'; font-size: 0.65rem; background: #da3633; color: #fff; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
-    .chat-input-area { padding: 12px 16px; background: #0d1117; border-top: 1px solid #21262d; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    
+    .typing-indicator {
+      position: absolute;
+      bottom: 60px;
+      left: 20px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: #8b949e;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 10;
+    }
+    .typing-indicator.active { display: flex; }
+    .typing-dots { display: flex; gap: 2px; }
+    .typing-dots span {
+      width: 4px; height: 4px;
+      background: #58a6ff;
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    .chat-input-area { padding: 12px 16px; background: #0d1117; border-top: 1px solid #21262d; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; position: relative; }
     .chat-input-area input { flex: 1; min-width: 150px; background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 10px 14px; border-radius: 8px; font-size: 0.95rem; font-family: inherit; }
     .chat-input-area input:focus { outline: none; border-color: #58a6ff; }
     .chat-input-area input:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -145,6 +176,8 @@
     .icon-btn.delete:hover { border-color: #f85149; color: #f85149; }
     .icon-btn.warn:hover { border-color: #d29922; color: #d29922; }
     .icon-btn.unban:hover { border-color: #3fb950; color: #3fb950; }
+    .icon-btn.win { border-color: #3fb950; color: #3fb950; background: rgba(63,185,80,0.1); }
+    .icon-btn.win:hover { background: rgba(63,185,80,0.2); }
     .empty-state { text-align: center; padding: 30px; color: #6e7681; font-style: italic; }
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #238636; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.5); opacity: 0; transition: 0.3s; z-index: 2000; max-width: 90%; text-align: center; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -170,7 +203,6 @@
     .role-badge.admin { background: rgba(218, 54, 51, 0.15); color: #f85149; border-color: rgba(218, 54, 51, 0.4); }
     .footer { text-align: center; padding: 24px 20px; border-top: 1px solid #21262d; color: #6e7681; font-size: 0.85rem; }
     
-    /* Стили для онлайна в профиле игрока */
     .online-indicator {
       display: inline-block;
       width: 10px; height: 10px;
@@ -179,6 +211,112 @@
     }
     .online-indicator.online { background: #3fb950; box-shadow: 0 0 6px #3fb950; }
     .online-indicator.offline { background: #6e7681; }
+
+    #notification-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 5000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 320px;
+    }
+    .notification-item {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-left: 4px solid #58a6ff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      cursor: pointer;
+      animation: slideIn 0.3s ease;
+      transition: transform 0.2s;
+    }
+    .notification-item:hover { transform: scale(1.02); }
+    .notification-title {
+      font-size: 0.85rem;
+      color: #58a6ff;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .notification-text {
+      font-size: 0.9rem;
+      color: #c9d1d9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    /* 🐣 ПИТОМЕЦ */
+    .pet-widget {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .pet-image {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+    }
+    .pet-info {
+      flex: 1;
+      min-width: 180px;
+    }
+    .pet-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ffd700;
+      margin-bottom: 4px;
+    }
+    .pet-status {
+      font-size: 0.9rem;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+    .pet-status.awake { color: #3fb950; }
+    .pet-status.sleeping { color: #da3633; }
+    .pet-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pet-btn {
+      background: #238636;
+      border: none;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pet-btn:hover:not(:disabled) { background: #2ea043; }
+    .pet-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pet-btn.sleeping-btn { background: #da3633; }
 
     @media (max-width: 600px) {
       .hero { padding: 30px 18px; }
@@ -197,10 +335,15 @@
       .chat-wrapper { height: 480px; }
       .topbar-user span { display: none; }
       .profile-stats { grid-template-columns: 1fr; }
+      #notification-container { top: 10px; right: 10px; left: 10px; max-width: none; }
+      .pet-widget { padding: 12px; gap: 12px; }
+      .pet-image { width: 60px; height: 60px; }
     }
   </style>
 </head>
 <body>
+
+  <div id="notification-container"></div>
 
   <div class="menu-overlay" id="menuOverlay"></div>
 
@@ -254,8 +397,33 @@
         <div class="badge">⚡ ОФИЦИАЛЬНЫЙ САЙТ КЛАНА</div>
         <h2>NOVA</h2>
         <p>Мы — сообщество, где каждый может проявить себя. Сила в единстве, будущее — в нас.</p>
-        <button class="btn" data-page="giveaway">🎁 Участвовать в розыгрыше</button>
+        
+        <div id="homeAuthBlock" style="margin-bottom: 20px;">
+          <button class="btn btn-tg" id="homeLoginBtn" style="font-size: 1.2rem; padding: 15px 40px;">
+            ✈️ Войти через Telegram
+          </button>
+        </div>
+
+        <div id="homeWelcomeBlock" style="display:none; margin-bottom: 20px;">
+          <p style="font-size: 1.2rem; color: #3fb950; font-weight: 600;">С возвращением, <span id="homeUserName">Игрок</span>!</p>
+        </div>
+
+        <button class="btn" data-page="giveaway" style="margin-top: 10px;">🎁 Участвовать в розыгрыше</button>
       </section>
+
+      <!-- 🐣 ПИТОМЕЦ (появляется только для авторизованных) -->
+      <div id="petWidget" class="pet-widget" style="display:none;">
+        <img id="petImage" class="pet-image" src="chick_happy.png" alt="Питомец">
+        <div class="pet-info">
+          <div class="pet-name">🐣 Цыплёнок Нови</div>
+          <div id="petStatus" class="pet-status">Проверяем...</div>
+          <div style="font-size:0.8rem;color:#6e7681;">Еда стоит 10 🪙 монет</div>
+        </div>
+        <div class="pet-actions">
+          <button id="feedPetBtn" class="pet-btn">🍚 Покормить</button>
+        </div>
+      </div>
+      
       <section>
         <div class="section-title">📅 Ближайшие события</div>
         <div class="news-grid" id="homeEvents"></div>
@@ -302,6 +470,12 @@
               </div>
             </div>
           </div>
+          
+          <div id="typingIndicator" class="typing-indicator">
+            <span id="typingName"></span>, пишет
+            <div class="typing-dots"><span></span><span></span><span></span></div>
+          </div>
+
           <div id="chatLoginPrompt" class="chat-notice" style="display:none;">
             <span class="big-icon">🔒</span>
             <p>Чтобы писать в чат, <strong>войдите через Telegram</strong>.</p>
@@ -366,6 +540,7 @@
           <button class="admin-tab" data-tab="news-list">📋 Список новостей</button>
           <button class="admin-tab" data-tab="chat-admin">💬 Модерация чата</button>
           <button class="admin-tab" data-tab="users-admin">👥 Пользователи / Баны</button>
+          <button class="admin-tab" data-tab="announcements">📢 Объявления</button>
         </div>
 
         <div class="admin-tab-content active" id="tab-giveaway">
@@ -550,6 +725,29 @@
             </form>
           </div>
         </div>
+
+        <div class="admin-tab-content" id="tab-announcements">
+          <div class="admin-panel">
+            <h2>📢 Объявление всем игрокам</h2>
+            <p style="color:#8b949e;font-size:0.9rem;margin-bottom:16px;">
+              Отправьте текст, и у всех, кто сейчас на сайте, всплывёт уведомление.
+            </p>
+            <form id="announcementForm">
+              <div class="form-group">
+                <label>Заголовок</label>
+                <input type="text" id="announcementTitle" value="Клан NOVA" placeholder="Заголовок уведомления">
+              </div>
+              <div class="form-group">
+                <label>Текст объявления *</label>
+                <textarea id="announcementText" required placeholder="Например: Заходи в клан! Новые события!"></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn">📢 Отправить всем</button>
+                <button type="button" class="btn btn-secondary" id="clearAnnouncementBtn">🗑️ Убрать баннер</button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -557,7 +755,7 @@
 
   <footer class="footer">
     <p>⭐ Клан NOVA — вместе мы сила ⭐</p>
-    <p style="margin-top: 8px; font-size: 0.8rem;">© 2025 NOVA. Все права защищены.</p>
+    <p style="margin-top: 8px; font-size: 0.8rem;">© 2026 NOVA. Все права защищены.</p>
   </footer>
 
   <div class="toast" id="toast"></div>
@@ -570,17 +768,67 @@
       // ============================================
       // НАСТРОЙКИ
       // ============================================
-      const BOT_USERNAME = 'Vitaliy4635BOT'; // Замени на ник своего бота
-      
-      // СКРЫТЫЙ ПАРОЛЬ (это слово "nova2025", зашифрованное)
+      const BOT_USERNAME = 'Vitaliy4635BOT'; 
       const ADMIN_PASSWORD_HASH = '7b8b965ad4bca0e41ab51de7b31363a1';
+      
+      const RANKS = [
+        { minMessages: 0, title: 'Новобранец', icon: '🐣', color: '#8b949e' },
+        { minMessages: 10, title: 'Воин', icon: '⚔️', color: '#58a6ff' },
+        { minMessages: 50, title: 'Ветеран', icon: '🛡️', color: '#3fb950' },
+        { minMessages: 150, title: 'Офицер', icon: '🔥', color: '#d29922' },
+        { minMessages: 300, title: 'Мастер', icon: '👑', color: '#da3633' },
+        { minMessages: 500, title: 'Легенда NOVA', icon: '🏆', color: '#ffd700' }
+      ];
+
+      function getRank(messageCount) {
+        let rank = RANKS[0];
+        for (const r of RANKS) {
+          if (messageCount >= r.minMessages) rank = r;
+        }
+        return rank;
+      }
+
+      function getNextRank(messageCount) {
+        for (const r of RANKS) {
+          if (messageCount < r.minMessages) return r;
+        }
+        return null;
+      }
+
+      // 🐣 НАСТРОЙКИ ПИТОМЦА
+      const PET_FEED_COST = 10; // Сколько монет стоит кормление
+      const PET_HUNGRY_HOURS = 4; // Через сколько часов он засыпает
+      const PET_WAKE_HOURS = 2; // Через сколько часов после кормления просыпается
+
+      const BAD_WORDS = ['дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок', 'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество', 'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный', 'пидорас', 'пидор', 'педик', 'гомосек', 'гомик', 'петух', 'залупа', 'манда', 'вагина', 'порно', 'трахать', 'выебать', 'долбоёб', 'долбоеб', 'мудак', 'мудила', 'уёбок', 'уебок', 'нахуй', 'похуй', 'заебал', 'заебись', 'охуеть', 'охуенно', 'сучара', 'блядина', 'проститутка', 'гандон', 'жопа', 'жопу', 'жопой', 'дура', 'дурочка', 'курица', 'овца', 'баран', 'осёл', 'осел', 'тупица', 'тупорылый', 'тупорылая', 'дебилоид', 'кретинка', 'ниггер', 'нигер', 'хач', 'чурка', 'чурбан', 'жид', 'жидяра', 'фашист', 'нацист', 'гитлер'];
+
+      function containsBadWords(text) {
+        if (!text) return false;
+        const lower = text.toLowerCase().replace(/[.,!?;:()\[\]{}"'*]/g, '');
+        for (const word of BAD_WORDS) {
+          if (lower.includes(word)) return true;
+        }
+        return false;
+      }
+
+      function isSpam(text) {
+        if (!text) return false;
+        if (/(.)\1{4,}/i.test(text)) return true;
+        const letters = text.replace(/[^a-zA-Zа-яА-Я]/g, '');
+        if (letters.length > 10) {
+          const upper = text.replace(/[^A-ZА-Я]/g, '').length;
+          if (upper / letters.length > 0.7) return true;
+        }
+        if (text.length > 500) return true;
+        return false;
+      }
+
       function checkPassword(input) {
-        if (input === 'nova2025') return true; // Запасной вход
+        if (input === 'nova2025') return true; 
         const hash = input.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0).toString(16);
         return hash === ADMIN_PASSWORD_HASH;
       }
 
-      // ТВОЙ КОНФИГ FIREBASE
       const firebaseConfig = {
         apiKey: "AIzaSyD7dDwzJgTz-jJJmrntoZmfcTk9nDx2Zls",
         authDomain: "nova-clan-91b20.firebaseapp.com",
@@ -595,85 +843,25 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
+      function formatTime(timeValue) {
+        if (!timeValue) return '';
+        if (typeof timeValue === 'string' && timeValue.includes(':') && !timeValue.includes('T')) {
+          return timeValue;
+        }
+        try {
+          const date = new Date(timeValue);
+          if (isNaN(date.getTime())) return '--:--';
+          return date.toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+          return '--:--';
+        }
+      }
+
       const STORAGE = {
         ADMIN: 'nova_admin_logged',
         CURRENT_USER: 'nova_current_user',
         AUTO_BAN_SETTINGS: 'nova_autoban_settings'
       };
-
-      // ============================================
-      // АНТИСПАМ
-      // ============================================
-      const BAD_WORDS = ['дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок', 'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество', 'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный'];
-      const BLOCKED_WORDS_IN_TEXT = ['купи', 'продам', 'продаю', 'продажа', 'скидк', 'бесплатно', 'халяв', 'заработ', 'подработ', 'казин', 'ставк', 'букмекер', 'крипт', 'биткоин', 'биткойн', 'донат', 'инвестиц', 'пассивный доход', 'перейди по ссылке', 'переходи по ссылке', 'жми на ссылку', 'жми сюда', 'подпишись', 'подписывайся', 'подписка', 'реклама', 'рекламк', 'розыгрыш призов', 'розыгрыш денег', 'халявные', 'бесплатные скины', 'промокод', 'промо-код', 'промо код', 'взлом', 'взломать', 'читы', 'читер', 'чит на', 'бесплатный чит'];
-      const BLOCKED_DOMAINS = ['vk.com', 'vk.ru', 'vkontakte', 'ok.ru', 'odnoklassniki', 't.me', 'telegram.me', 'telegram.org', 'whatsapp', 'wa.me', 'youtube.com', 'youtu.be', 'instagram.com', 'insta', 'facebook.com', 'fb.com', 'tiktok.com', 'twitter.com', 'x.com', 'discord.gg', 'discord.com', 'twitch.tv', 'rutube.ru', 'dzen.ru', 'zen.yandex', 'yandex.ru', 'google.com', 'google.ru', 'gmail.com', 'mail.ru', 'rambler.ru', 'yahoo.com', 'avito.ru', 'ozon.ru', 'wildberries.ru', 'aliexpress', 'steamcommunity.com', 'steampowered.com', 'epicgames.com', 'roblox.com', 'minecraft.net', 'brawl-stars', 'clashroyale', 'donate', 'donation', 'qiwi', 'webmoney', 'yoomoney', 'paypal', 'casino', 'kazino', 'казино', 'ставки', 'букмекер', '1xbet', 'betwinner', 'crypto', 'bitcoin', 'binance', 'usdt', 'eth', 'btc', 'free-money', 'халява', 'заработок', 'подработка'];
-
-      function normalizeText(text) {
-        if (!text) return '';
-        let t = String(text).toLowerCase();
-        const cyrToLat = { 'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x', 'к': 'k', 'м': 'm', 'н': 'h', 'в': 'b', 'т': 't', 'і': 'i', 'ї': 'i', 'є': 'e', 'ґ': 'g' };
-        t = t.replace(/[аеорсухкмнвтіїєґ]/g, ch => cyrToLat[ch] || ch);
-        t = t.replace(/\s+/g, '');
-        t = t.replace(/\[\.\]|\(\.\)|\{\.\}|\[dot\]|\(dot\)/gi, '.');
-        t = t.replace(/\[at\]|\(at\)|\[@\]/gi, '@');
-        t = t.replace(/точка|точку|тчк|дот/gi, '.');
-        t = t.replace(/слэш|слеш|slash|дробь/gi, '/');
-        t = t.replace(/собака|собачка/gi, '@');
-        t = t.replace(/двоеточие|двоеточ/gi, ':');
-        t = t.replace(/[.\-_*~`'"]+/g, '.');
-        t = t.replace(/\.{2,}/g, '.');
-        return t;
-      }
-
-      function containsLink(text) {
-        if (!text) return false;
-        const rawPatterns = [/https?/i, /hxxp/i, /www\./i, /:\/\//, /\.(com|ru|net|org|io|me|tv|gg|xyz|top|site|online|club|info|biz|pro|app|dev|co|uk|de|fr|us|kz|by|ua)/i, /t\.me/i, /vk\.com|vk\.ru/i, /@[a-z0-9_]{3,}/i, /[a-z0-9-]+\.(com|ru|net|org|io|me|tv|gg)/i];
-        if (rawPatterns.some(re => re.test(text))) return true;
-        const norm = normalizeText(text);
-        if (/https?:|hxxp:|ftps?:/i.test(norm)) return true;
-        if (/[a-z0-9-]+\.(com|ru|net|org|io|me|tv|gg|xyz|top|site|online|club|info|biz|pro|app|dev|co|uk|de|fr|us|kz|by|ua)/i.test(norm)) return true;
-        const blockedDomainNames = ['vk', 'vkontakte', 'ok', 'odnoklassniki', 't', 'telegram', 'whatsapp', 'wa', 'youtube', 'youtu', 'instagram', 'insta', 'facebook', 'fb', 'tiktok', 'twitter', 'x', 'discord', 'twitch', 'rutube', 'dzen', 'zen', 'yandex', 'google', 'gmail', 'mail', 'rambler', 'yahoo', 'avito', 'ozon', 'wildberries', 'aliexpress', 'steamcommunity', 'steampowered', 'epicgames', 'roblox', 'minecraft', 'brawl', 'clashroyale', 'donate', 'qiwi', 'webmoney', 'yoomoney', 'paypal', 'casino', 'kazino', 'казино', '1xbet', 'betwinner', 'binance', 'crypto', 'bitcoin', 'usdt'];
-        for (const name of blockedDomainNames) {
-          const re = new RegExp(name + '[./:@\\-_]', 'i');
-          if (re.test(norm)) return true;
-        }
-        for (const dom of BLOCKED_DOMAINS) {
-          if (norm.includes(dom)) return true;
-        }
-        return false;
-      }
-
-      function containsBadWords(text) {
-        if (!text) return false;
-        const lower = text.toLowerCase();
-        const norm = normalizeText(text);
-        if (BAD_WORDS.some(w => lower.includes(w) || norm.includes(w))) return true;
-        if (BLOCKED_WORDS_IN_TEXT.some(w => lower.includes(w) || norm.includes(w))) return true;
-        return false;
-      }
-
-      function checkSpam(text) {
-        if (!text || !text.trim()) return { ok: false, reason: 'Пустое сообщение' };
-        if (text.length > 500) return { ok: false, reason: 'Сообщение слишком длинное (макс. 500 символов)' };
-        if (containsLink(text)) return { ok: false, reason: 'Запрещено: ссылки и упоминания сайтов' };
-        if (containsBadWords(text)) return { ok: false, reason: 'Сообщение содержит недопустимые слова или рекламу' };
-        const letters = text.replace(/[^a-zа-яё]/gi, '');
-        if (letters.length > 8) {
-          const upper = letters.replace(/[^A-ZА-ЯЁ]/g, '').length;
-          if (upper / letters.length > 0.7) return { ok: false, reason: 'Слишком много заглавных букв (капс)' };
-        }
-        if (/(.)\1{7,}/.test(text)) return { ok: false, reason: 'Слишком много повторяющихся символов' };
-        return { ok: true, reason: '' };
-      }
-
-      // ============================================
-      // ХРАНИЛИЩЕ И ДАННЫЕ
-      // ============================================
-      function loadJSON(key, fallback) {
-        try { const raw = localStorage.getItem(key); if (raw) return JSON.parse(raw); } catch (e) {}
-        return typeof fallback === 'function' ? fallback() : JSON.parse(JSON.stringify(fallback));
-      }
-      function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
 
       let newsList = [];
       let giveaway = { title: 'Скин «Дракон»', text: 'Разыгрываем редкий скин.', winners: 1, end: '10 июня 2025', status: 'active' };
@@ -682,32 +870,166 @@
       let users = [];
       let autoBanSettings = loadJSON(STORAGE.AUTO_BAN_SETTINGS, { thresholdDays: 30 });
       let currentUser = loadJSON(STORAGE.CURRENT_USER, null);
+      
+      let typingTimeout = null;
+      let isTyping = false;
+      let currentPage = 'home';
+      
+      let lastMessageText = '';
+      let lastMessageTime = 0;
+      const SPAM_INTERVAL = 5000;
 
-      // Загружаем игроков из Firebase
-      db.ref('users').on('value', (snapshot) => {
-        const data = snapshot.val();
-        users = data ? data : [];
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+
+      function loadJSON(key, fallback) {
+        try { const raw = localStorage.getItem(key); if (raw) return JSON.parse(raw); } catch (e) {}
+        return typeof fallback === 'function' ? fallback() : JSON.parse(JSON.stringify(fallback));
+      }
+      function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+      // ============================================
+      // 🐣 ЛОГИКА ПИТОМЦА
+      // ============================================
+      
+      // Состояние питомца хранится в localStorage
+      let petState = loadJSON('nova_pet', {
+        lastFed: 0, // timestamp последнего кормления
+        isSleeping: true, // изначально спит
+        totalFed: 0 // сколько раз покормлен
+      });
+
+      // Проверяем, спит ли питомец
+      function isPetSleeping() {
+        if (!petState.lastFed) return true; // Никогда не кормили — спит
+        const hoursSinceFed = (Date.now() - petState.lastFed) / (1000 * 60 * 60);
+        return hoursSinceFed > PET_HUNGRY_HOURS; // Если прошло больше 4 часов — спит
+      }
+
+      function renderPet() {
+        const widget = document.getElementById('petWidget');
+        if (!widget) return;
+
+        if (!currentUser) {
+          widget.style.display = 'none';
+          return;
+        }
+
+        widget.style.display = 'flex';
+
+        const sleeping = isPetSleeping();
+        const petImage = document.getElementById('petImage');
+        const petStatus = document.getElementById('petStatus');
+        const feedBtn = document.getElementById('feedPetBtn');
+
+        if (sleeping) {
+          petImage.src = 'chick_sleep.png';
+          petStatus.textContent = '😴 Спит... Покорми его!';
+          petStatus.className = 'pet-status sleeping';
+          feedBtn.classList.add('sleeping-btn');
+          feedBtn.innerHTML = '🍚 Покормить (10 🪙)';
+          feedBtn.disabled = false;
+        } else {
+          petImage.src = 'chick_happy.png';
+          const hoursSinceFed = ((Date.now() - petState.lastFed) / (1000 * 60 * 60)).toFixed(1);
+          petStatus.textContent = `🐣 Бодрствует! Покормлен ${hoursSinceFed} ч. назад.`;
+          petStatus.className = 'pet-status awake';
+          feedBtn.classList.remove('sleeping-btn');
+          feedBtn.innerHTML = '🍚 Покормить ещё (10 🪙)';
+          feedBtn.disabled = false;
+        }
+
+        // Проверяем, хватает ли монет
+        const coins = currentUser.coins || 0;
+        if (coins < PET_FEED_COST) {
+          feedBtn.disabled = true;
+          feedBtn.innerHTML = `🍚 Не хватает монет (${coins}/${PET_FEED_COST})`;
+        }
+      }
+
+      function feedPet() {
+        if (!currentUser) return;
         
-        // Обновляем интерфейс при изменении данных
-        if (document.getElementById('page-players').classList.contains('active')) {
-          renderPlayers();
+        const coins = currentUser.coins || 0;
+        if (coins < PET_FEED_COST) {
+          showToast('❌ Не хватает монет! Пиши в чат и заходи на сайт, чтобы заработать.', true);
+          return;
         }
-        if (document.getElementById('page-admin').classList.contains('active')) {
-          renderAdminUsers();
-        }
-        // Если текущий пользователь обновился в базе, обновляем его локальную копию
-        if (currentUser) {
-          const updatedCurrent = users.find(u => u.id === currentUser.id);
-          if (updatedCurrent) {
-            currentUser = updatedCurrent;
-            updateUIForUser();
+
+        // Списываем монеты
+        currentUser.coins = coins - PET_FEED_COST;
+        
+        // Обновляем состояние питомца
+        petState.lastFed = Date.now();
+        petState.isSleeping = false;
+        petState.totalFed = (petState.totalFed || 0) + 1;
+        
+        saveJSON('nova_pet', petState);
+        saveUsers();
+        
+        showToast('🐣 Питомец покормлен! Спасибо!');
+        renderPet();
+        updateUIForUser();
+      }
+
+      // Проверяем каждые 30 секунд, не заснул ли питомец
+      setInterval(() => {
+        if (currentPage === 'home') renderPet();
+      }, 30000);
+
+      // ============================================
+      // 🔥 ПОДСЧЁТ СООБЩЕНИЙ
+      // ============================================
+      db.ref('chat').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        const messages = Object.values(data);
+        const counts = {};
+        
+        messages.forEach(m => {
+          if (m.name) {
+            counts[m.name] = (counts[m.name] || 0) + 1;
+          }
+        });
+        
+        let changed = false;
+        users.forEach(u => {
+          const newCount = counts[u.name] || 0;
+          if (u.messageCount !== newCount) {
+            u.messageCount = newCount;
+            changed = true;
+          }
+        });
+        
+        if (changed) {
+          saveUsers();
+          if (document.getElementById('page-players').classList.contains('active')) renderPlayers();
+          if (document.getElementById('page-admin').classList.contains('active')) renderAdminUsers();
+          if (currentUser) {
+            const updated = users.find(u => u.id === currentUser.id);
+            if (updated) {
+              currentUser = updated;
+              saveJSON(STORAGE.CURRENT_USER, currentUser);
+            }
           }
         }
       });
 
-      // ============================================
-      // ПОЛЬЗОВАТЕЛИ
-      // ============================================
+      db.ref('users').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+           const uniqueUsersMap = {};
+           Object.values(data).forEach(u => { if (u && u.id) uniqueUsersMap[u.id] = u; });
+           users = Object.values(uniqueUsersMap);
+        } else { users = []; }
+        
+        if (document.getElementById('page-players').classList.contains('active')) renderPlayers();
+        if (document.getElementById('page-admin').classList.contains('active')) renderAdminUsers();
+        updateChatOnlineCount();
+      });
+
       function findUser(nameOrTgId) {
         if (!nameOrTgId) return null;
         const q = String(nameOrTgId).trim().toLowerCase();
@@ -722,38 +1044,48 @@
         }
         return true;
       }
-      
       function saveUsers() { 
-        db.ref('users').set(users);
+        const usersObject = {};
+        users.forEach(u => { usersObject[u.id] = u; });
+        db.ref('users').set(usersObject);
       }
 
       function loginUser(name, tgId) {
-        let user = findUser(name) || (tgId ? findUser(tgId) : null);
+        let user = findUser(tgId) || findUser(name);
         if (!user) {
           user = {
             id: 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
             name: name, tgId: tgId || '', role: 'player',
             createdAt: new Date().toISOString(), lastVisit: new Date().toISOString(),
-            banned: false, banReason: '', banUntil: null, coins: 100, avatar: ''
+            banned: false, banReason: '', banUntil: null, coins: 100, avatar: '',
+            messageCount: 0, daysVisited: 1, lastDayVisit: new Date().toDateString()
           };
           users.push(user); 
-          saveUsers();
         } else {
           user.lastVisit = new Date().toISOString(); 
-          saveUsers();
+          const today = new Date().toDateString();
+          if (user.lastDayVisit !== today) {
+            user.daysVisited = (user.daysVisited || 0) + 1;
+            user.lastDayVisit = today;
+          }
         }
+        saveUsers();
         currentUser = user; 
         saveJSON(STORAGE.CURRENT_USER, currentUser);
         return user;
       }
+      
       function logoutUser() {
-        currentUser = null; localStorage.removeItem(STORAGE.CURRENT_USER);
-        updateUIForUser(); showToast('Вы вышли из аккаунта'); switchPage('home');
+        if (currentUser) {
+          db.ref('typing/' + currentUser.id).remove();
+        }
+        currentUser = null; 
+        localStorage.removeItem(STORAGE.CURRENT_USER);
+        updateUIForUser(); 
+        showToast('Вы вышли из аккаунта'); 
+        switchPage('home');
       }
 
-      // ============================================
-      // ЭЛЕМЕНТЫ
-      // ============================================
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('menuOverlay');
       const openBtn = document.getElementById('openSidebar');
@@ -764,9 +1096,6 @@
 
       const titles = { home: 'Главная', news: 'Новости', players: 'Игроки', giveaway: 'Розыгрыш', chat: 'Чат', admin: 'Админ-панель', auth: 'Вход / Регистрация', profile: 'Профиль' };
 
-      // ============================================
-      // МЕНЮ И НАВИГАЦИЯ
-      // ============================================
       function openMenu() { sidebar.classList.add('open'); overlay.classList.add('active'); }
       function closeMenu() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
       openBtn.addEventListener('click', openMenu);
@@ -783,6 +1112,7 @@
       }
 
       function switchPage(pageId) {
+        currentPage = pageId;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         const target = document.getElementById('page-' + pageId);
         if (target) target.classList.add('active');
@@ -790,11 +1120,13 @@
         topbarTitle.textContent = titles[pageId] || 'NOVA';
         closeMenu();
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
         if (pageId === 'admin') updateAdminView();
         if (pageId === 'giveaway') renderPublicGiveaway();
-        if (pageId === 'chat') renderChat();
+        if (pageId === 'chat') { renderChat(); updateChatOnlineCount(); }
         if (pageId === 'profile') renderProfile();
         if (pageId === 'players') renderPlayers();
+        if (pageId === 'home') renderPet();
       }
 
       navLinks.forEach(link => {
@@ -811,7 +1143,61 @@
       }
 
       // ============================================
-      // ИГРОКИ (с онлайном)
+      // УВЕДОМЛЕНИЯ
+      // ============================================
+      function showNotification(name, text, isAnnouncement) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification(name, {
+              body: text,
+              icon: 'logo.png',
+              tag: isAnnouncement ? 'nova-announcement' : 'nova-chat'
+            });
+          } catch (e) {
+            console.log('Push error:', e);
+          }
+        }
+
+        const container = document.getElementById('notification-container');
+        const notif = document.createElement('div');
+        notif.className = 'notification-item';
+        if (isAnnouncement) {
+          notif.style.borderLeftColor = '#da3633';
+        }
+        
+        notif.innerHTML = `
+          <div class="notification-title" style="${isAnnouncement ? 'color: #da3633;' : ''}">
+            <span>${isAnnouncement ? '📢' : '💬'}</span> ${escapeHtml(name)}
+          </div>
+          <div class="notification-text">${escapeHtml(text)}</div>
+        `;
+        
+        notif.addEventListener('click', () => {
+          if (!isAnnouncement) switchPage('chat');
+          notif.remove();
+        });
+        
+        container.appendChild(notif);
+        
+        setTimeout(() => {
+          if (notif.parentNode) {
+            notif.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(() => notif.remove(), 300);
+          }
+        }, isAnnouncement ? 8000 : 5000);
+      }
+
+      let lastAnnouncementId = null;
+      db.ref('announcement').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data || !data.text) return;
+        if (lastAnnouncementId === data.id) return;
+        lastAnnouncementId = data.id;
+        showNotification(data.title || '📢 Объявление', data.text, true);
+      });
+
+      // ============================================
+      // ИГРОКИ
       // ============================================
       function timeAgo(dateString) {
         if (!dateString) return 'давно';
@@ -838,15 +1224,13 @@
         }
 
         const sorted = [...users].sort((a, b) => {
-          // Сначала онлайн, потом админы, потом остальные
-          const aOnline = (new Date() - new Date(a.lastVisit || 0)) < 120000; // 2 минуты
+          const aOnline = (new Date() - new Date(a.lastVisit || 0)) < 120000;
           const bOnline = (new Date() - new Date(b.lastVisit || 0)) < 120000;
           if (aOnline && !bOnline) return -1;
           if (!aOnline && bOnline) return 1;
-          
           if (a.role === 'admin' && b.role !== 'admin') return -1;
           if (a.role !== 'admin' && b.role === 'admin') return 1;
-          return new Date(b.createdAt) - new Date(a.createdAt);
+          return (b.messageCount || 0) - (a.messageCount || 0);
         });
 
         list.innerHTML = sorted.map(u => {
@@ -854,6 +1238,7 @@
           const initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
           const isOnline = (new Date() - new Date(u.lastVisit || 0)) < 120000;
           const lastSeenText = timeAgo(u.lastVisit);
+          const rank = getRank(u.messageCount || 0);
           
           let avatarHtml = `<div style="width:50px;height:50px;border-radius:50%;background:rgba(88,166,255,0.15);color:#58a6ff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;border:1px solid rgba(88,166,255,0.3);margin:0 auto 10px;">${initial}</div>`;
           
@@ -865,12 +1250,18 @@
             <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px;text-align:center;${banned ? 'opacity:0.6;' : ''}">
               ${avatarHtml}
               <div style="color:#c9d1d9;font-weight:600;font-size:1rem;margin-bottom:4px;">${escapeHtml(u.name)}</div>
+              <div style="font-size:0.85rem;margin-bottom:6px;color:${rank.color};font-weight:600;">
+                ${rank.icon} ${rank.title}
+              </div>
               <div style="font-size:0.8rem;margin-bottom:8px;color:${isOnline ? '#3fb950' : '#6e7681'};">
                 <span class="online-indicator ${isOnline ? 'online' : 'offline'}"></span>
                 ${isOnline ? 'В сети' : lastSeenText}
               </div>
+              <div style="font-size:0.75rem;color:#6e7681;margin-bottom:8px;">
+                💬 ${u.messageCount || 0} сообщений
+              </div>
               <div>
-                ${u.role === 'admin' ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);">👑 Админ</span>' : '<span style="background:rgba(88,166,255,0.12);color:#58a6ff;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(88,166,255,0.3);">Игрок</span>'}
+                ${u.role === 'admin' ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);">👑 Админ</span>' : ''}
                 ${banned ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);margin-left:4px;">🚫 Бан</span>' : ''}
               </div>
             </div>
@@ -879,7 +1270,7 @@
       }
 
       // ============================================
-      // НОВОСТИ (Firebase)
+      // НОВОСТИ
       // ============================================
       function renderNewsCard(item) {
         return `<div class="news-card"><h3>${escapeHtml(item.icon)} ${escapeHtml(item.title)}</h3><p>${escapeHtml(item.text)}</p><div class="news-date">📅 ${escapeHtml(item.date)}</div></div>`;
@@ -898,7 +1289,7 @@
       }
 
       // ============================================
-      // РОЗЫГРЫШ (Firebase)
+      // РОЗЫГРЫШ
       // ============================================
       function renderPublicGiveaway() {
         const container = document.getElementById('publicGiveaway');
@@ -939,7 +1330,8 @@
               
               db.ref('participants').push({
                 name: currentUser.name,
-                date: new Date().toLocaleDateString('ru-RU')
+                date: new Date().toLocaleDateString('ru-RU'),
+                isWinner: false
               });
               localStorage.setItem('nova_user_participated', '1');
               showToast('Вы зарегистрированы!');
@@ -951,7 +1343,14 @@
           const data = snapshot.val();
           participants = data ? Object.values(data) : [];
           if (participants.length) {
-            participantsEl.innerHTML = participants.map(p => `<div class="participant-row"><div class="name">👤 ${escapeHtml(p.name)}</div><div class="date">${escapeHtml(p.date || '')}</div></div>`).join('');
+            participantsEl.innerHTML = participants.map(p => `
+              <div class="participant-row" style="${p.isWinner ? 'border-color: #3fb950; background: rgba(63,185,80,0.05);' : ''}">
+                <div class="name" style="${p.isWinner ? 'color: #3fb950;' : ''}">
+                  ${p.isWinner ? '🏆' : '👤'} ${escapeHtml(p.name)}
+                </div>
+                <div class="date">${escapeHtml(p.date || '')}</div>
+              </div>
+            `).join('');
           } else {
             participantsEl.innerHTML = '<div class="empty-state">Пока никто не участвует. Будь первым!</div>';
           }
@@ -971,6 +1370,34 @@
         const regDate = new Date(currentUser.createdAt).toLocaleDateString('ru-RU');
         const initial = currentUser.name.charAt(0).toUpperCase();
         const coins = currentUser.coins || 0;
+        const messageCount = currentUser.messageCount || 0;
+        const daysVisited = currentUser.daysVisited || 1;
+        
+        const rank = getRank(messageCount);
+        const nextRank = getNextRank(messageCount);
+        
+        let progressHtml = '';
+        if (nextRank) {
+          const progress = Math.round(((messageCount - rank.minMessages) / (nextRank.minMessages - rank.minMessages)) * 100);
+          progressHtml = `
+            <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px;margin-bottom:20px;">
+              <p style="color:#8b949e;font-size:0.85rem;margin-bottom:8px;">
+                До звания <strong style="color:${nextRank.color}">${nextRank.icon} ${nextRank.title}</strong>: 
+                ещё <strong style="color:#58a6ff">${nextRank.minMessages - messageCount}</strong> сообщений
+              </p>
+              <div style="background:#21262d;border-radius:4px;height:8px;overflow:hidden;">
+                <div style="background:${nextRank.color};height:100%;width:${progress}%;transition:0.3s;"></div>
+              </div>
+            </div>
+          `;
+        } else {
+          progressHtml = `
+            <div style="background:rgba(255,215,0,0.1);border:1px solid #ffd700;border-radius:8px;padding:12px;margin-bottom:20px;">
+              <p style="color:#ffd700;font-weight:600;">🏆 Вы достигли максимального звания!</p>
+            </div>
+          `;
+        }
+        
         let avatarHtml = initial;
         if (currentUser.avatar) avatarHtml = `<img src="${escapeHtml(currentUser.avatar)}" alt="avatar">`;
 
@@ -979,15 +1406,29 @@
             <div class="profile-avatar-big">${avatarHtml}</div>
             <div class="profile-name">${escapeHtml(currentUser.name)}</div>
             <div class="profile-tgid">Telegram ID: ${escapeHtml(currentUser.tgId || '—')}</div>
+            
+            <div style="background:${rank.color}20;border:1px solid ${rank.color};border-radius:12px;padding:12px;margin-bottom:20px;">
+              <div style="font-size:1.5rem;margin-bottom:4px;">${rank.icon}</div>
+              <div style="color:${rank.color};font-weight:700;font-size:1.2rem;">${rank.title}</div>
+            </div>
+            
             <div style="margin-bottom: 20px;">
-              ${currentUser.role === 'admin' ? '<span class="role-badge admin">ADMIN</span>' : '<span class="role-badge">ИГРОК</span>'}
+              ${currentUser.role === 'admin' ? '<span class="role-badge admin">ADMIN</span>' : ''}
               ${banned ? '<span class="ban-badge">🚫 BAN</span>' : ''}
             </div>
+            
             <div class="profile-stats">
+              <div class="stat-box"><div class="stat-value">${messageCount}</div><div class="stat-label">Сообщений</div></div>
+              <div class="stat-box"><div class="stat-value">${daysVisited}</div><div class="stat-label">Дней в клане</div></div>
               <div class="stat-box"><div class="stat-value">${coins}</div><div class="stat-label">Монеты</div></div>
-              <div class="stat-box"><div class="stat-value">0</div><div class="stat-label">Сообщений</div></div>
-              <div class="stat-box"><div class="stat-value">${regDate}</div><div class="stat-label">Дата рег.</div></div>
             </div>
+            
+            ${progressHtml}
+            
+            <div style="color:#6e7681;font-size:0.85rem;margin-bottom:20px;">
+              В клане с ${regDate}
+            </div>
+            
             ${banned ? `<div style="background:rgba(218,54,51,0.1);border:1px solid #da3633;border-radius:8px;padding:12px;margin-bottom:20px;text-align:left;"><p style="color:#f85149;font-weight:600;margin-bottom:4px;">🚫 Аккаунт забанен</p><p style="color:#8b949e;font-size:0.85rem;">Причина: ${escapeHtml(currentUser.banReason || '—')}</p></div>` : ''}
             <div class="profile-actions">
               <button class="btn btn-secondary" onclick="switchPage('chat')">💬 В чат</button>
@@ -998,11 +1439,16 @@
       }
 
       // ============================================
-      // АВТОРИЗАЦИЯ (Telegram)
+      // АВТОРИЗАЦИЯ
       // ============================================
       function updateUIForUser() {
         const sidebarUser = document.getElementById('sidebarUser');
         const topbarUserName = document.getElementById('topbarUserName');
+        
+        const homeAuthBlock = document.getElementById('homeAuthBlock');
+        const homeWelcomeBlock = document.getElementById('homeWelcomeBlock');
+        const homeUserName = document.getElementById('homeUserName');
+
         if (currentUser) {
           sidebarUser.style.display = 'flex';
           const initial = currentUser.name.charAt(0).toUpperCase();
@@ -1010,15 +1456,35 @@
           if (currentUser.avatar) avatarEl.innerHTML = `<img src="${escapeHtml(currentUser.avatar)}" alt="avatar">`;
           else avatarEl.textContent = initial;
           document.getElementById('userName').textContent = currentUser.name;
+          
+          const messageCount = currentUser.messageCount || 0;
+          const rank = getRank(messageCount);
           const roleEl = document.getElementById('userRole');
-          if (currentUser.role === 'admin') roleEl.innerHTML = 'Админ <span class="role-badge admin">ADMIN</span>';
-          else roleEl.textContent = 'Игрок';
+          
+          const isAdminMode = localStorage.getItem(STORAGE.ADMIN) === '1';
+          if (currentUser.role === 'admin' || isAdminMode) {
+             roleEl.innerHTML = `Админ <span class="role-badge admin">ADMIN</span>`;
+          } else {
+             roleEl.innerHTML = `${rank.icon} ${rank.title}`;
+          }
+          
           if (isBanned(currentUser)) roleEl.innerHTML = 'Игрок <span class="ban-badge">🚫 BAN</span>';
           topbarUserName.textContent = currentUser.name;
+
+          if (homeAuthBlock) homeAuthBlock.style.display = 'none';
+          if (homeWelcomeBlock) {
+            homeWelcomeBlock.style.display = 'block';
+            if (homeUserName) homeUserName.textContent = currentUser.name;
+          }
         } else {
           sidebarUser.style.display = 'none';
           topbarUserName.textContent = 'Гость';
+
+          if (homeAuthBlock) homeAuthBlock.style.display = 'block';
+          if (homeWelcomeBlock) homeWelcomeBlock.style.display = 'none';
         }
+        
+        renderPet();
       }
 
       window.onTelegramAuth = function(user) {
@@ -1026,17 +1492,13 @@
         if (statusEl) statusEl.textContent = 'Авторизация успешна! Входим...';
         const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
         const tgId = String(user.id);
-        const existingUser = findUser(tgId);
-        let finalUser;
-        if (existingUser) {
-          existingUser.lastVisit = new Date().toISOString();
-          if (user.photo_url) existingUser.avatar = user.photo_url;
-          saveUsers(); currentUser = existingUser; finalUser = existingUser;
-        } else {
-          finalUser = loginUser(name, tgId);
-          if (user.photo_url) finalUser.avatar = user.photo_url;
+        
+        let finalUser = loginUser(name, tgId);
+        if (user.photo_url) {
+          finalUser.avatar = user.photo_url;
           saveUsers();
         }
+        
         saveJSON(STORAGE.CURRENT_USER, currentUser);
         updateUIForUser();
         showToast('Добро пожаловать, ' + finalUser.name + '!');
@@ -1070,9 +1532,20 @@
       }, 4000);
 
       document.getElementById('chatLoginBtn').addEventListener('click', () => switchPage('auth'));
+      
+      const homeLoginBtn = document.getElementById('homeLoginBtn');
+      if (homeLoginBtn) {
+        homeLoginBtn.addEventListener('click', () => switchPage('auth'));
+      }
+
+      // Кнопка "Покормить" в питомце
+      const feedPetBtn = document.getElementById('feedPetBtn');
+      if (feedPetBtn) {
+        feedPetBtn.addEventListener('click', feedPet);
+      }
 
       // ============================================
-      // ЧАТ (Firebase Realtime)
+      // ЧАТ
       // ============================================
       const chatMessagesEl = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
@@ -1082,8 +1555,12 @@
       const chatBanReason = document.getElementById('chatBanReason');
       const chatInputArea = document.getElementById('chatInputArea');
       const chatOnlineCount = document.getElementById('chatOnlineCount');
+      
+      const typingIndicator = document.getElementById('typingIndicator');
+      const typingName = document.getElementById('typingName');
 
-      let lastMessageTime = 0;
+      lastMessageTime = 0;
+      lastMessageText = '';
 
       function updateChatAccess() {
         const banned = currentUser ? isBanned(currentUser) : false;
@@ -1109,12 +1586,50 @@
         }
       }
 
+      function updateChatOnlineCount() {
+        let onlineCount = 0;
+        const now = new Date();
+        users.forEach(u => {
+          if (u.lastVisit && (now - new Date(u.lastVisit)) < 120000) {
+            onlineCount++;
+          }
+        });
+        if (chatOnlineCount) chatOnlineCount.textContent = onlineCount + ' онлайн';
+      }
+
+      db.ref('typing').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          typingIndicator.classList.remove('active');
+          return;
+        }
+
+        const now = Date.now();
+        let activeTypers = [];
+
+        Object.keys(data).forEach(uid => {
+          const t = data[uid];
+          if (t && t.timestamp && (now - t.timestamp < 3000)) {
+            if (!currentUser || currentUser.id !== uid) {
+              activeTypers.push(t.name);
+            }
+          }
+        });
+
+        if (activeTypers.length > 0) {
+          typingName.textContent = activeTypers[0];
+          typingIndicator.classList.add('active');
+        } else {
+          typingIndicator.classList.remove('active');
+        }
+      });
+
       function renderChat() {
         if (!chatMessagesEl) return;
         
         db.ref('chat').limitToLast(100).on('value', (snapshot) => {
           const data = snapshot.val();
-          const msgs = data ? Object.values(data) : [];
+          const msgs = data ? Object.entries(data).map(([id, val]) => ({...val, id})) : [];
           
           if (!msgs.length) {
             chatMessagesEl.innerHTML = '<div class="empty-state">Сообщений пока нет. Начни общение первым!</div>';
@@ -1125,48 +1640,109 @@
               const classes = ['chat-message'];
               if (isOwn) classes.push('own');
               if (m.isAdmin) classes.push('admin');
-              return `<div class="${classes.join(' ')}"><div class="chat-avatar">${escapeHtml(initial)}</div><div class="chat-body"><div class="chat-meta"><span class="chat-name">${escapeHtml(m.name)}</span><span class="chat-time">${escapeHtml(m.time)}</span></div><div class="chat-text">${escapeHtml(m.text)}</div></div></div>`;
+              
+              const displayTime = m.time ? formatTime(m.time) : '';
+              
+              const author = users.find(u => u.name === m.name);
+              const rank = author ? getRank(author.messageCount || 0) : RANKS[0];
+
+              return `<div class="${classes.join(' ')}"><div class="chat-avatar">${escapeHtml(initial)}</div><div class="chat-body"><div class="chat-meta"><span class="chat-name">${escapeHtml(m.name)}</span><span style="color:${rank.color};font-size:0.7rem;">${rank.icon}</span><span class="chat-time">${escapeHtml(displayTime)}</span></div><div class="chat-text">${escapeHtml(m.text)}</div></div></div>`;
             }).join('');
             chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
           }
-          
-          const unique = new Set(msgs.map(m => m.name));
-          chatOnlineCount.textContent = (unique.size + (currentUser ? 1 : 0)) + ' онлайн';
         });
-        
+        updateChatOnlineCount();
         updateChatAccess();
       }
+
+      db.ref('chat').limitToLast(1).on('child_added', (snapshot) => {
+        const msg = snapshot.val();
+        if (!msg) return;
+        if (currentUser && msg.name === currentUser.name) return;
+        showNotification(msg.name, msg.text, false);
+      });
 
       function sendChatMessage() {
         if (!currentUser) { showToast('Войдите, чтобы писать', true); return; }
         if (isBanned(currentUser)) { showToast('Вы забанены в чате', true); return; }
+        
         const text = chatInput.value.trim();
         if (!text) return;
 
-        const now = Date.now();
-        if (now - lastMessageTime < 3000) { showToast('Не так быстро!', true); return; }
-        
-        const spamCheck = checkSpam(text);
-        if (!spamCheck.ok) { showToast(spamCheck.reason, true); return; }
+        if (containsBadWords(text)) {
+          showToast('❌ Сообщение содержит недопустимые слова!', true);
+          chatInput.value = '';
+          return;
+        }
 
-        const timeStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        
+        if (isSpam(text)) {
+          showToast('❌ Слишком много повторяющихся символов или заглавных букв!', true);
+          return;
+        }
+
+        const now = Date.now();
+        if (now - lastMessageTime < SPAM_INTERVAL) {
+          const remaining = Math.ceil((SPAM_INTERVAL - (now - lastMessageTime)) / 1000);
+          showToast(`⏳ Не так быстро! Подождите ${remaining} сек.`, true);
+          return;
+        }
+
+        if (text === lastMessageText) {
+          showToast('❌ Вы уже отправляли такое сообщение', true);
+          return;
+        }
+
+        if (text.length > 500) {
+          showToast('❌ Сообщение слишком длинное (макс. 500)', true);
+          return;
+        }
+
         db.ref('chat').push({
           name: currentUser.name,
           text: text,
-          time: timeStr,
-          isAdmin: isAdminLogged()
+          time: new Date().toISOString(),
+          isAdmin: isAdminLogged() || currentUser.role === 'admin'
         }).then(() => {
           chatInput.value = '';
           lastMessageTime = now;
+          lastMessageText = text;
           currentUser.coins = (currentUser.coins || 0) + 1;
           saveUsers();
+          
+          db.ref('typing/' + currentUser.id).remove();
+          clearTimeout(typingTimeout);
+          isTyping = false;
+          
         }).catch((error) => {
           showToast('Ошибка отправки: ' + error.message, true);
         });
       }
 
       chatSendBtn.addEventListener('click', sendChatMessage);
+      
+      chatInput.addEventListener('input', () => {
+        if (!currentUser || isBanned(currentUser)) return;
+
+        const now = Date.now();
+        
+        if (!isTyping || (now - (typingTimeout || 0) > 2000)) {
+          isTyping = true;
+          db.ref('typing/' + currentUser.id).set({
+            name: currentUser.name,
+            timestamp: now
+          });
+        }
+
+        clearTimeout(typingTimeout);
+        
+        typingTimeout = setTimeout(() => {
+          if (currentUser) {
+            db.ref('typing/' + currentUser.id).remove();
+          }
+          isTyping = false;
+        }, 3000);
+      });
+
       chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
 
       // ============================================
@@ -1196,7 +1772,12 @@
         if (checkPassword(pass)) {
           localStorage.setItem(STORAGE.ADMIN, '1');
           document.getElementById('adminPassword').value = '';
-          if (currentUser) { currentUser.role = 'admin'; saveUsers(); updateUIForUser(); }
+          
+          if (currentUser) { 
+            currentUser.role = 'admin'; 
+            saveUsers(); 
+            updateUIForUser(); 
+          }
           updateAdminView();
           showToast('Добро пожаловать!');
         } else {
@@ -1224,7 +1805,6 @@
         });
       });
 
-      // АДМИН: РОЗЫГРЫШ (Firebase)
       function fillGiveawayForm() {
         db.ref('giveaway').once('value', (snapshot) => {
           const data = snapshot.val();
@@ -1252,12 +1832,11 @@
         });
       });
 
-      // АДМИН: УЧАСТНИКИ (Firebase)
       document.getElementById('participantForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('partName').value.trim();
         if (!name) return;
-        db.ref('participants').push({ name, date: new Date().toLocaleDateString('ru-RU') }).then(() => {
+        db.ref('participants').push({ name, date: new Date().toLocaleDateString('ru-RU'), isWinner: false }).then(() => {
           document.getElementById('partName').value = '';
           showToast('Участник добавлен');
         });
@@ -1267,13 +1846,38 @@
         const list = document.getElementById('adminParticipantsList');
         db.ref('participants').on('value', (snapshot) => {
           const data = snapshot.val();
-          participants = data ? Object.values(data) : [];
+          participants = data ? Object.entries(data).map(([id, val]) => ({ ...val, id })) : [];
           if (!participants.length) { list.innerHTML = '<div class="empty-state">Пока нет участников</div>'; return; }
-          list.innerHTML = participants.map(p => `<div class="admin-item"><div class="admin-item-info"><h4>👤 ${escapeHtml(p.name)}</h4><div class="meta"><span>📅 ${escapeHtml(p.date || '')}</span></div></div></div>`).join('');
+          
+          list.innerHTML = participants.map(p => `
+            <div class="admin-item" style="${p.isWinner ? 'border-color: #3fb950;' : ''}">
+              <div class="admin-item-info">
+                <h4>${p.isWinner ? '🏆' : '👤'} ${escapeHtml(p.name)} ${p.isWinner ? '<span style="color: #3fb950; font-size: 0.8rem;">(Победитель)</span>' : ''}</h4>
+                <div class="meta"><span>📅 ${escapeHtml(p.date || '')}</span></div>
+              </div>
+              <div class="admin-item-actions">
+                <button class="icon-btn ${p.isWinner ? 'win' : ''}" data-toggle-winner="${p.id}">
+                  ${p.isWinner ? 'Отменить победу' : '🏆 Победитель'}
+                </button>
+              </div>
+            </div>
+          `).join('');
+
+          list.querySelectorAll('[data-toggle-winner]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const id = btn.dataset.toggleWinner;
+              const p = participants.find(x => x.id === id);
+              if (!p) return;
+              
+              const newStatus = !p.isWinner;
+              db.ref('participants/' + id).update({ isWinner: newStatus }).then(() => {
+                showToast(newStatus ? 'Участник назначен победителем!' : 'Статус победителя снят');
+              });
+            });
+          });
         });
       }
 
-      // АДМИН: НОВОСТИ (Firebase)
       const newsForm = document.getElementById('newsForm');
       const editIdInput = document.getElementById('editId');
       const titleInput = document.getElementById('newsTitle');
@@ -1364,7 +1968,6 @@
         });
       }
 
-      // АДМИН: МОДЕРАЦИЯ ЧАТА (Firebase)
       function renderAdminChat() {
         const list = document.getElementById('adminChatList');
         const countEl = document.getElementById('chatTotalCount');
@@ -1376,19 +1979,21 @@
           
           if (!msgs.length) { list.innerHTML = '<div class="empty-state">Сообщений пока нет</div>'; return; }
           
-          list.innerHTML = msgs.map(m => `
+          list.innerHTML = msgs.map(m => {
+            const displayTime = m.time ? formatTime(m.time) : '';
+            return `
             <div class="admin-item">
               <div class="admin-item-info">
                 <h4>👤 ${escapeHtml(m.name)} ${m.isAdmin ? '<span style="background:#da3633;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:4px;">ADMIN</span>' : ''}</h4>
                 <p>${escapeHtml(m.text)}</p>
-                <div class="meta"><span>⏰ ${escapeHtml(m.time)}</span></div>
+                <div class="meta"><span>⏰ ${escapeHtml(displayTime)}</span></div>
               </div>
               <div class="admin-item-actions">
                 <button class="icon-btn delete" data-del-msg="${m.id}">🗑️ Удалить</button>
                 <button class="icon-btn warn" data-ban-author="${escapeHtml(m.name)}">⚖️ Бан</button>
               </div>
             </div>
-          `).join('');
+          `}).join('');
 
           list.querySelectorAll('[data-del-msg]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1418,7 +2023,6 @@
         }
       });
 
-      // АДМИН: ПОЛЬЗОВАТЕЛИ И БАНЫ
       function renderAdminUsers() {
         const list = document.getElementById('adminUsersList');
         const countEl = document.getElementById('adminUsersCount');
@@ -1428,19 +2032,28 @@
         const sorted = [...users].sort((a, b) => {
           if (isBanned(a) && !isBanned(b)) return -1;
           if (!isBanned(a) && isBanned(b)) return 1;
-          return new Date(b.createdAt) - new Date(a.createdAt);
+          return (b.messageCount || 0) - (a.messageCount || 0);
         });
 
         list.innerHTML = sorted.map(u => {
           const banned = isBanned(u);
           const lastVisit = u.lastVisit ? new Date(u.lastVisit).toLocaleDateString('ru-RU') : '—';
+          const rank = getRank(u.messageCount || 0);
           return `
             <div class="admin-item">
               <div class="admin-item-info">
                 <h4>👤 ${escapeHtml(u.name)} ${u.role === 'admin' ? '<span class="role-badge admin">ADMIN</span>' : ''} ${banned ? '<span class="ban-badge">🚫 BAN</span>' : ''}</h4>
-                <p style="font-size:0.85rem;">TG ID: ${escapeHtml(u.tgId || '—')} • Последний визит: ${lastVisit}</p>
+                <p style="font-size:0.85rem;">
+                  <span style="color:${rank.color};font-weight:600;">${rank.icon} ${rank.title}</span> • 
+                  TG ID: ${escapeHtml(u.tgId || '—')} • Последний визит: ${lastVisit}
+                </p>
                 ${banned ? `<p style="color:#f85149;font-size:0.85rem;">⚖️ Причина: ${escapeHtml(u.banReason || '—')}</p>` : ''}
-                <div class="meta"><span>📅 Регистрация: ${new Date(u.createdAt).toLocaleDateString('ru-RU')}</span><span>🪙 Монеты: ${u.coins || 0}</span></div>
+                <div class="meta">
+                  <span>📅 Регистрация: ${new Date(u.createdAt).toLocaleDateString('ru-RU')}</span>
+                  <span>💬 Сообщений: ${u.messageCount || 0}</span>
+                  <span>📆 Дней: ${u.daysVisited || 1}</span>
+                  <span>🪙 Монеты: ${u.coins || 0}</span>
+                </div>
               </div>
               <div class="admin-item-actions">
                 ${banned ? `<button class="icon-btn unban" data-unban="${u.id}">🔓 Разбанить</button>` : `<button class="icon-btn warn" data-ban-user="${u.id}">⚖️ Забанить</button>`}
@@ -1532,26 +2145,54 @@
         } else { showToast('Нет пользователей для авто-бана'); }
       });
 
+      document.getElementById('announcementForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = document.getElementById('announcementTitle').value.trim() || '📢 Объявление';
+        const text = document.getElementById('announcementText').value.trim();
+        if (!text) { showToast('Введите текст объявления', true); return; }
+        
+        db.ref('announcement').set({
+          id: Date.now().toString(),
+          title: title,
+          text: text,
+          sentAt: new Date().toISOString(),
+          sentBy: currentUser ? currentUser.name : 'Админ'
+        }).then(() => {
+          showToast('Объявление отправлено всем!');
+          document.getElementById('announcementText').value = '';
+        });
+      });
+
+      document.getElementById('clearAnnouncementBtn').addEventListener('click', () => {
+        if (confirm('Убрать баннер у всех?')) {
+          db.ref('announcement').remove().then(() => showToast('Объявление убрано'));
+        }
+      });
+
       function updateLastVisit() { 
         if (currentUser) { 
           currentUser.lastVisit = new Date().toISOString(); 
           saveUsers(); 
+          if (document.getElementById('page-players').classList.contains('active')) renderPlayers();
+          if (document.getElementById('page-chat').classList.contains('active')) updateChatOnlineCount();
         } 
       }
 
       window.switchPage = switchPage;
       window.logoutUser = logoutUser;
 
-      // ============================================
-      // ИНИЦИАЛИЗАЦИЯ
-      // ============================================
       renderPublicNews();
       renderPublicGiveaway();
       updateUIForUser();
       updateLastVisit();
       
-      // Обновляем lastVisit каждые 30 секунд, чтобы показывать "онлайн"
       setInterval(updateLastVisit, 30000);
+
+      window.addEventListener('beforeunload', () => {
+        if (currentUser) {
+          db.ref('typing/' + currentUser.id).remove();
+        }
+      });
 
     })();
   </script>
