@@ -212,7 +212,6 @@
     .online-indicator.online { background: #3fb950; box-shadow: 0 0 6px #3fb950; }
     .online-indicator.offline { background: #6e7681; }
 
-    /* Стили для всплывающих уведомлений */
     #notification-container {
       position: fixed;
       top: 20px;
@@ -673,9 +672,6 @@
                 <button type="button" class="btn btn-secondary" id="clearAnnouncementBtn">🗑️ Убрать баннер</button>
               </div>
             </form>
-            <p style="color:#6e7681;font-size:0.8rem;margin-top:12px;">
-              * Уведомление появится у всех, кто сейчас на сайте. Если у игрока вкладка свёрнута — он увидит при возвращении.
-            </p>
           </div>
         </div>
       </div>
@@ -701,57 +697,66 @@
       const BOT_USERNAME = 'Vitaliy4635BOT'; 
       const ADMIN_PASSWORD_HASH = '7b8b965ad4bca0e41ab51de7b31363a1';
       
-      // 🔴 МОЩНЫЙ ФИЛЬТР МАТА (расширенный)
+      // 🏆 СИСТЕМА ЗВАНИЙ
+      const RANKS = [
+        { minMessages: 0, title: 'Новобранец', icon: '🐣', color: '#8b949e' },
+        { minMessages: 10, title: 'Воин', icon: '⚔️', color: '#58a6ff' },
+        { minMessages: 50, title: 'Ветеран', icon: '🛡️', color: '#3fb950' },
+        { minMessages: 150, title: 'Офицер', icon: '🔥', color: '#d29922' },
+        { minMessages: 300, title: 'Мастер', icon: '👑', color: '#da3633' },
+        { minMessages: 500, title: 'Легенда NOVA', icon: '🏆', color: '#ffd700' }
+      ];
+
+      function getRank(messageCount) {
+        let rank = RANKS[0];
+        for (const r of RANKS) {
+          if (messageCount >= r.minMessages) rank = r;
+        }
+        return rank;
+      }
+
+      function getNextRank(messageCount) {
+        for (const r of RANKS) {
+          if (messageCount < r.minMessages) return r;
+        }
+        return null;
+      }
+
+      // 🔴 МОЩНЫЙ ФИЛЬТР МАТА
       const BAD_WORDS = [
         'дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок',
         'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество',
         'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный',
-        'пидорас', 'пидор', 'педик', 'гомосек', 'гомик', 'петух', 'петух',
+        'пидорас', 'пидор', 'педик', 'гомосек', 'гомик', 'петух',
         'залупа', 'манда', 'вагина', 'секс', 'порно', 'трахать', 'выебать',
         'долбоёб', 'долбоеб', 'мудак', 'мудила', 'уёбок', 'уебок',
         'нахуй', 'похуй', 'заебал', 'заебись', 'охуеть', 'охуенно',
-        'сучара', 'блядина', 'шлюха', 'проститутка', 'гандон',
-        'жопа', 'жопу', 'жопой', 'попа', 'попка',
+        'сучара', 'блядина', 'проститутка', 'гандон',
+        'жопа', 'жопу', 'жопой',
         'дура', 'дурочка', 'курица', 'овца', 'баран', 'осёл', 'осел',
         'тупица', 'тупорылый', 'тупорылая', 'дебилоид', 'кретинка',
         'ниггер', 'нигер', 'хач', 'чурка', 'чурбан', 'жид', 'жидяра',
         'фашист', 'нацист', 'гитлер'
       ];
 
-      // Разрешённые слова, которые могут содержать мат случайно
-      const ALLOWED_WORDS = ['компьютер', 'пидор', 'сдачи', 'сдачу'];
-
-      // Функция проверки на мат
       function containsBadWords(text) {
         if (!text) return false;
         const lower = text.toLowerCase().replace(/[.,!?;:()\[\]{}"'*]/g, '');
-        
         for (const word of BAD_WORDS) {
-          // Проверяем точное вхождение
-          if (lower.includes(word)) {
-            return true;
-          }
+          if (lower.includes(word)) return true;
         }
         return false;
       }
 
-      // Функция проверки на спам (повторяющиеся символы)
       function isSpam(text) {
         if (!text) return false;
-        
-        // Много одинаковых символов подряд (5+)
         if (/(.)\1{4,}/i.test(text)) return true;
-        
-        // Много заглавных букв
         const letters = text.replace(/[^a-zA-Zа-яА-Я]/g, '');
         if (letters.length > 10) {
           const upper = text.replace(/[^A-ZА-Я]/g, '').length;
           if (upper / letters.length > 0.7) return true;
         }
-        
-        // Слишком длинное
         if (text.length > 500) return true;
-        
         return false;
       }
 
@@ -807,10 +812,9 @@
       let isTyping = false;
       let currentPage = 'home';
       
-      // 🔴 АНТИСПАМ: отслеживаем последнее сообщение
       let lastMessageText = '';
       let lastMessageTime = 0;
-      const SPAM_INTERVAL = 5000; // 5 секунд между сообщениями
+      const SPAM_INTERVAL = 5000;
 
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
@@ -821,6 +825,46 @@
         return typeof fallback === 'function' ? fallback() : JSON.parse(JSON.stringify(fallback));
       }
       function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+      // ============================================
+      // 🔥 ПОДСЧЁТ СООБЩЕНИЙ (ОБНОВЛЯЕТСЯ ИЗ ЧАТА)
+      // ============================================
+      db.ref('chat').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        const messages = Object.values(data);
+        const counts = {};
+        
+        messages.forEach(m => {
+          if (m.name) {
+            counts[m.name] = (counts[m.name] || 0) + 1;
+          }
+        });
+        
+        // Обновляем счётчики у пользователей
+        let changed = false;
+        users.forEach(u => {
+          const newCount = counts[u.name] || 0;
+          if (u.messageCount !== newCount) {
+            u.messageCount = newCount;
+            changed = true;
+          }
+        });
+        
+        if (changed) {
+          saveUsers();
+          if (document.getElementById('page-players').classList.contains('active')) renderPlayers();
+          if (document.getElementById('page-admin').classList.contains('active')) renderAdminUsers();
+          if (currentUser) {
+            const updated = users.find(u => u.id === currentUser.id);
+            if (updated) {
+              currentUser = updated;
+              saveJSON(STORAGE.CURRENT_USER, currentUser);
+            }
+          }
+        }
+      });
 
       db.ref('users').on('value', (snapshot) => {
         const data = snapshot.val();
@@ -862,11 +906,18 @@
             id: 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
             name: name, tgId: tgId || '', role: 'player',
             createdAt: new Date().toISOString(), lastVisit: new Date().toISOString(),
-            banned: false, banReason: '', banUntil: null, coins: 100, avatar: ''
+            banned: false, banReason: '', banUntil: null, coins: 100, avatar: '',
+            messageCount: 0, daysVisited: 1, lastDayVisit: new Date().toDateString()
           };
           users.push(user); 
         } else {
           user.lastVisit = new Date().toISOString(); 
+          // Считаем дни посещений
+          const today = new Date().toDateString();
+          if (user.lastDayVisit !== today) {
+            user.daysVisited = (user.daysVisited || 0) + 1;
+            user.lastDayVisit = today;
+          }
         }
         saveUsers();
         currentUser = user; 
@@ -985,20 +1036,17 @@
         }, isAnnouncement ? 8000 : 5000);
       }
 
-      // Слушаем объявления от админа
       let lastAnnouncementId = null;
       db.ref('announcement').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data || !data.text) return;
-        
         if (lastAnnouncementId === data.id) return;
         lastAnnouncementId = data.id;
-        
         showNotification(data.title || '📢 Объявление', data.text, true);
       });
 
       // ============================================
-      // ИГРОКИ
+      // ИГРОКИ (С РАНГАМИ)
       // ============================================
       function timeAgo(dateString) {
         if (!dateString) return 'давно';
@@ -1031,7 +1079,7 @@
           if (!aOnline && bOnline) return 1;
           if (a.role === 'admin' && b.role !== 'admin') return -1;
           if (a.role !== 'admin' && b.role === 'admin') return 1;
-          return new Date(b.createdAt) - new Date(a.createdAt);
+          return (b.messageCount || 0) - (a.messageCount || 0);
         });
 
         list.innerHTML = sorted.map(u => {
@@ -1039,6 +1087,7 @@
           const initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
           const isOnline = (new Date() - new Date(u.lastVisit || 0)) < 120000;
           const lastSeenText = timeAgo(u.lastVisit);
+          const rank = getRank(u.messageCount || 0);
           
           let avatarHtml = `<div style="width:50px;height:50px;border-radius:50%;background:rgba(88,166,255,0.15);color:#58a6ff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;border:1px solid rgba(88,166,255,0.3);margin:0 auto 10px;">${initial}</div>`;
           
@@ -1050,12 +1099,18 @@
             <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px;text-align:center;${banned ? 'opacity:0.6;' : ''}">
               ${avatarHtml}
               <div style="color:#c9d1d9;font-weight:600;font-size:1rem;margin-bottom:4px;">${escapeHtml(u.name)}</div>
+              <div style="font-size:0.85rem;margin-bottom:6px;color:${rank.color};font-weight:600;">
+                ${rank.icon} ${rank.title}
+              </div>
               <div style="font-size:0.8rem;margin-bottom:8px;color:${isOnline ? '#3fb950' : '#6e7681'};">
                 <span class="online-indicator ${isOnline ? 'online' : 'offline'}"></span>
                 ${isOnline ? 'В сети' : lastSeenText}
               </div>
+              <div style="font-size:0.75rem;color:#6e7681;margin-bottom:8px;">
+                💬 ${u.messageCount || 0} сообщений
+              </div>
               <div>
-                ${u.role === 'admin' ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);">👑 Админ</span>' : '<span style="background:rgba(88,166,255,0.12);color:#58a6ff;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(88,166,255,0.3);">Игрок</span>'}
+                ${u.role === 'admin' ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);">👑 Админ</span>' : ''}
                 ${banned ? '<span style="background:rgba(218,54,51,0.15);color:#f85149;font-size:0.75rem;padding:2px 8px;border-radius:20px;border:1px solid rgba(218,54,51,0.4);margin-left:4px;">🚫 Бан</span>' : ''}
               </div>
             </div>
@@ -1152,7 +1207,7 @@
       }
 
       // ============================================
-      // ПРОФИЛЬ
+      // ПРОФИЛЬ (С РАНГОМ)
       // ============================================
       function renderProfile() {
         const container = document.getElementById('profileContent');
@@ -1164,6 +1219,34 @@
         const regDate = new Date(currentUser.createdAt).toLocaleDateString('ru-RU');
         const initial = currentUser.name.charAt(0).toUpperCase();
         const coins = currentUser.coins || 0;
+        const messageCount = currentUser.messageCount || 0;
+        const daysVisited = currentUser.daysVisited || 1;
+        
+        const rank = getRank(messageCount);
+        const nextRank = getNextRank(messageCount);
+        
+        let progressHtml = '';
+        if (nextRank) {
+          const progress = Math.round(((messageCount - rank.minMessages) / (nextRank.minMessages - rank.minMessages)) * 100);
+          progressHtml = `
+            <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px;margin-bottom:20px;">
+              <p style="color:#8b949e;font-size:0.85rem;margin-bottom:8px;">
+                До звания <strong style="color:${nextRank.color}">${nextRank.icon} ${nextRank.title}</strong>: 
+                ещё <strong style="color:#58a6ff">${nextRank.minMessages - messageCount}</strong> сообщений
+              </p>
+              <div style="background:#21262d;border-radius:4px;height:8px;overflow:hidden;">
+                <div style="background:${nextRank.color};height:100%;width:${progress}%;transition:0.3s;"></div>
+              </div>
+            </div>
+          `;
+        } else {
+          progressHtml = `
+            <div style="background:rgba(255,215,0,0.1);border:1px solid #ffd700;border-radius:8px;padding:12px;margin-bottom:20px;">
+              <p style="color:#ffd700;font-weight:600;">🏆 Вы достигли максимального звания!</p>
+            </div>
+          `;
+        }
+        
         let avatarHtml = initial;
         if (currentUser.avatar) avatarHtml = `<img src="${escapeHtml(currentUser.avatar)}" alt="avatar">`;
 
@@ -1172,15 +1255,29 @@
             <div class="profile-avatar-big">${avatarHtml}</div>
             <div class="profile-name">${escapeHtml(currentUser.name)}</div>
             <div class="profile-tgid">Telegram ID: ${escapeHtml(currentUser.tgId || '—')}</div>
+            
+            <div style="background:${rank.color}20;border:1px solid ${rank.color};border-radius:12px;padding:12px;margin-bottom:20px;">
+              <div style="font-size:1.5rem;margin-bottom:4px;">${rank.icon}</div>
+              <div style="color:${rank.color};font-weight:700;font-size:1.2rem;">${rank.title}</div>
+            </div>
+            
             <div style="margin-bottom: 20px;">
-              ${currentUser.role === 'admin' ? '<span class="role-badge admin">ADMIN</span>' : '<span class="role-badge">ИГРОК</span>'}
+              ${currentUser.role === 'admin' ? '<span class="role-badge admin">ADMIN</span>' : ''}
               ${banned ? '<span class="ban-badge">🚫 BAN</span>' : ''}
             </div>
+            
             <div class="profile-stats">
+              <div class="stat-box"><div class="stat-value">${messageCount}</div><div class="stat-label">Сообщений</div></div>
+              <div class="stat-box"><div class="stat-value">${daysVisited}</div><div class="stat-label">Дней в клане</div></div>
               <div class="stat-box"><div class="stat-value">${coins}</div><div class="stat-label">Монеты</div></div>
-              <div class="stat-box"><div class="stat-value">0</div><div class="stat-label">Сообщений</div></div>
-              <div class="stat-box"><div class="stat-value">${regDate}</div><div class="stat-label">Дата рег.</div></div>
             </div>
+            
+            ${progressHtml}
+            
+            <div style="color:#6e7681;font-size:0.85rem;margin-bottom:20px;">
+              В клане с ${regDate}
+            </div>
+            
             ${banned ? `<div style="background:rgba(218,54,51,0.1);border:1px solid #da3633;border-radius:8px;padding:12px;margin-bottom:20px;text-align:left;"><p style="color:#f85149;font-weight:600;margin-bottom:4px;">🚫 Аккаунт забанен</p><p style="color:#8b949e;font-size:0.85rem;">Причина: ${escapeHtml(currentUser.banReason || '—')}</p></div>` : ''}
             <div class="profile-actions">
               <button class="btn btn-secondary" onclick="switchPage('chat')">💬 В чат</button>
@@ -1208,13 +1305,16 @@
           if (currentUser.avatar) avatarEl.innerHTML = `<img src="${escapeHtml(currentUser.avatar)}" alt="avatar">`;
           else avatarEl.textContent = initial;
           document.getElementById('userName').textContent = currentUser.name;
+          
+          const messageCount = currentUser.messageCount || 0;
+          const rank = getRank(messageCount);
           const roleEl = document.getElementById('userRole');
           
           const isAdminMode = localStorage.getItem(STORAGE.ADMIN) === '1';
           if (currentUser.role === 'admin' || isAdminMode) {
-             roleEl.innerHTML = 'Админ <span class="role-badge admin">ADMIN</span>';
+             roleEl.innerHTML = `Админ <span class="role-badge admin">ADMIN</span>`;
           } else {
-             roleEl.textContent = 'Игрок';
+             roleEl.innerHTML = `${rank.icon} ${rank.title}`;
           }
           
           if (isBanned(currentUser)) roleEl.innerHTML = 'Игрок <span class="ban-badge">🚫 BAN</span>';
@@ -1300,7 +1400,6 @@
       const typingIndicator = document.getElementById('typingIndicator');
       const typingName = document.getElementById('typingName');
 
-      // 🔴 АНТИСПАМ: сбрасываем таймер при загрузке
       lastMessageTime = 0;
       lastMessageText = '';
 
@@ -1384,8 +1483,12 @@
               if (m.isAdmin) classes.push('admin');
               
               const displayTime = m.time ? formatTime(m.time) : '';
+              
+              // Получаем ранг автора
+              const author = users.find(u => u.name === m.name);
+              const rank = author ? getRank(author.messageCount || 0) : RANKS[0];
 
-              return `<div class="${classes.join(' ')}"><div class="chat-avatar">${escapeHtml(initial)}</div><div class="chat-body"><div class="chat-meta"><span class="chat-name">${escapeHtml(m.name)}</span><span class="chat-time">${escapeHtml(displayTime)}</span></div><div class="chat-text">${escapeHtml(m.text)}</div></div></div>`;
+              return `<div class="${classes.join(' ')}"><div class="chat-avatar">${escapeHtml(initial)}</div><div class="chat-body"><div class="chat-meta"><span class="chat-name">${escapeHtml(m.name)}</span><span style="color:${rank.color};font-size:0.7rem;">${rank.icon}</span><span class="chat-time">${escapeHtml(displayTime)}</span></div><div class="chat-text">${escapeHtml(m.text)}</div></div></div>`;
             }).join('');
             chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
           }
@@ -1397,13 +1500,10 @@
       db.ref('chat').limitToLast(1).on('child_added', (snapshot) => {
         const msg = snapshot.val();
         if (!msg) return;
-        
         if (currentUser && msg.name === currentUser.name) return;
-        
         showNotification(msg.name, msg.text, false);
       });
 
-      // 🔴 ФУНКЦИЯ ОТПРАВКИ С АНТИСПАМОМ И ФИЛЬТРОМ
       function sendChatMessage() {
         if (!currentUser) { showToast('Войдите, чтобы писать', true); return; }
         if (isBanned(currentUser)) { showToast('Вы забанены в чате', true); return; }
@@ -1411,20 +1511,17 @@
         const text = chatInput.value.trim();
         if (!text) return;
 
-        // 🔴 ПРОВЕРКА 1: Мат
         if (containsBadWords(text)) {
           showToast('❌ Сообщение содержит недопустимые слова!', true);
           chatInput.value = '';
           return;
         }
 
-        // 🔴 ПРОВЕРКА 2: Спам-паттерны
         if (isSpam(text)) {
           showToast('❌ Слишком много повторяющихся символов или заглавных букв!', true);
           return;
         }
 
-        // 🔴 ПРОВЕРКА 3: Кулдаун
         const now = Date.now();
         if (now - lastMessageTime < SPAM_INTERVAL) {
           const remaining = Math.ceil((SPAM_INTERVAL - (now - lastMessageTime)) / 1000);
@@ -1432,19 +1529,16 @@
           return;
         }
 
-        // 🔴 ПРОВЕРКА 4: Одинаковые сообщения
         if (text === lastMessageText) {
           showToast('❌ Вы уже отправляли такое сообщение', true);
           return;
         }
 
-        // 🔴 ПРОВЕРКА 5: Слишком длинное
         if (text.length > 500) {
           showToast('❌ Сообщение слишком длинное (макс. 500)', true);
           return;
         }
 
-        // Всё ок — отправляем
         db.ref('chat').push({
           name: currentUser.name,
           text: text,
@@ -1553,7 +1647,6 @@
         });
       });
 
-      // АДМИН: РОЗЫГРЫШ
       function fillGiveawayForm() {
         db.ref('giveaway').once('value', (snapshot) => {
           const data = snapshot.val();
@@ -1581,7 +1674,6 @@
         });
       });
 
-      // АДМИН: УЧАСТНИКИ
       document.getElementById('participantForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('partName').value.trim();
@@ -1628,7 +1720,6 @@
         });
       }
 
-      // АДМИН: НОВОСТИ
       const newsForm = document.getElementById('newsForm');
       const editIdInput = document.getElementById('editId');
       const titleInput = document.getElementById('newsTitle');
@@ -1719,7 +1810,6 @@
         });
       }
 
-      // АДМИН: МОДЕРАЦИЯ ЧАТА
       function renderAdminChat() {
         const list = document.getElementById('adminChatList');
         const countEl = document.getElementById('chatTotalCount');
@@ -1775,7 +1865,6 @@
         }
       });
 
-      // АДМИН: ПОЛЬЗОВАТЕЛИ И БАНЫ
       function renderAdminUsers() {
         const list = document.getElementById('adminUsersList');
         const countEl = document.getElementById('adminUsersCount');
@@ -1785,19 +1874,28 @@
         const sorted = [...users].sort((a, b) => {
           if (isBanned(a) && !isBanned(b)) return -1;
           if (!isBanned(a) && isBanned(b)) return 1;
-          return new Date(b.createdAt) - new Date(a.createdAt);
+          return (b.messageCount || 0) - (a.messageCount || 0);
         });
 
         list.innerHTML = sorted.map(u => {
           const banned = isBanned(u);
           const lastVisit = u.lastVisit ? new Date(u.lastVisit).toLocaleDateString('ru-RU') : '—';
+          const rank = getRank(u.messageCount || 0);
           return `
             <div class="admin-item">
               <div class="admin-item-info">
                 <h4>👤 ${escapeHtml(u.name)} ${u.role === 'admin' ? '<span class="role-badge admin">ADMIN</span>' : ''} ${banned ? '<span class="ban-badge">🚫 BAN</span>' : ''}</h4>
-                <p style="font-size:0.85rem;">TG ID: ${escapeHtml(u.tgId || '—')} • Последний визит: ${lastVisit}</p>
+                <p style="font-size:0.85rem;">
+                  <span style="color:${rank.color};font-weight:600;">${rank.icon} ${rank.title}</span> • 
+                  TG ID: ${escapeHtml(u.tgId || '—')} • Последний визит: ${lastVisit}
+                </p>
                 ${banned ? `<p style="color:#f85149;font-size:0.85rem;">⚖️ Причина: ${escapeHtml(u.banReason || '—')}</p>` : ''}
-                <div class="meta"><span>📅 Регистрация: ${new Date(u.createdAt).toLocaleDateString('ru-RU')}</span><span>🪙 Монеты: ${u.coins || 0}</span></div>
+                <div class="meta">
+                  <span>📅 Регистрация: ${new Date(u.createdAt).toLocaleDateString('ru-RU')}</span>
+                  <span>💬 Сообщений: ${u.messageCount || 0}</span>
+                  <span>📆 Дней: ${u.daysVisited || 1}</span>
+                  <span>🪙 Монеты: ${u.coins || 0}</span>
+                </div>
               </div>
               <div class="admin-item-actions">
                 ${banned ? `<button class="icon-btn unban" data-unban="${u.id}">🔓 Разбанить</button>` : `<button class="icon-btn warn" data-ban-user="${u.id}">⚖️ Забанить</button>`}
@@ -1889,18 +1987,11 @@
         } else { showToast('Нет пользователей для авто-бана'); }
       });
 
-      // ============================================
-      // АДМИН: ОБЪЯВЛЕНИЯ
-      // ============================================
       document.getElementById('announcementForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const title = document.getElementById('announcementTitle').value.trim() || '📢 Объявление';
         const text = document.getElementById('announcementText').value.trim();
-        
-        if (!text) {
-          showToast('Введите текст объявления', true);
-          return;
-        }
+        if (!text) { showToast('Введите текст объявления', true); return; }
         
         db.ref('announcement').set({
           id: Date.now().toString(),
@@ -1916,9 +2007,7 @@
 
       document.getElementById('clearAnnouncementBtn').addEventListener('click', () => {
         if (confirm('Убрать баннер у всех?')) {
-          db.ref('announcement').remove().then(() => {
-            showToast('Объявление убрано');
-          });
+          db.ref('announcement').remove().then(() => showToast('Объявление убрано'));
         }
       });
 
@@ -1934,9 +2023,6 @@
       window.switchPage = switchPage;
       window.logoutUser = logoutUser;
 
-      // ============================================
-      // ИНИЦИАЛИЗАЦИЯ
-      // ============================================
       renderPublicNews();
       renderPublicGiveaway();
       updateUIForUser();
