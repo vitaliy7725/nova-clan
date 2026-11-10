@@ -99,6 +99,7 @@
     .chat-message.own .chat-name { color: #3fb950; }
     .chat-message.own .chat-avatar { background: rgba(63, 185, 80, 0.15); color: #3fb950; border-color: rgba(63, 185, 80, 0.3); }
     .chat-message.admin .chat-name::after { content: 'ADMIN'; font-size: 0.65rem; background: #da3633; color: #fff; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+    .chat-message.blocked .chat-text { color: #da3633; font-style: italic; }
     
     .typing-indicator {
       position: absolute;
@@ -259,7 +260,6 @@
       to { opacity: 0; }
     }
 
-    /* 🐣 ПИТОМЕЦ */
     .pet-widget {
       background: #161b22;
       border: 1px solid #21262d;
@@ -411,7 +411,7 @@
         <button class="btn" data-page="giveaway" style="margin-top: 10px;">🎁 Участвовать в розыгрыше</button>
       </section>
 
-      <!-- 🐣 ПИТОМЕЦ (появляется только для авторизованных) -->
+      <!-- 🐣 ПИТОМЕЦ -->
       <div id="petWidget" class="pet-widget" style="display:none;">
         <img id="petImage" class="pet-image" src="chick_happy.png" alt="Питомец">
         <div class="pet-info">
@@ -667,6 +667,7 @@
             </p>
             <div class="form-actions" style="margin-bottom:16px;">
               <button type="button" class="btn btn-danger" id="chatClearBtn">🗑️ Очистить весь чат</button>
+              <button type="button" class="btn btn-danger" id="chatAutoCleanBtn">🧹 Авто-очистка мата</button>
               <button type="button" class="btn btn-secondary" id="logoutBtn2" style="margin-left:auto;">🚪 Выйти</button>
             </div>
             <div class="admin-list" id="adminChatList"></div>
@@ -795,12 +796,25 @@
         return null;
       }
 
-      // 🐣 НАСТРОЙКИ ПИТОМЦА
-      const PET_FEED_COST = 10; // Сколько монет стоит кормление
-      const PET_HUNGRY_HOURS = 4; // Через сколько часов он засыпает
-      const PET_WAKE_HOURS = 2; // Через сколько часов после кормления просыпается
+      const PET_FEED_COST = 10;
+      const PET_HUNGRY_HOURS = 4;
 
-      const BAD_WORDS = ['дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок', 'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество', 'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный', 'пидорас', 'пидор', 'педик', 'гомосек', 'гомик', 'петух', 'залупа', 'манда', 'вагина', 'порно', 'трахать', 'выебать', 'долбоёб', 'долбоеб', 'мудак', 'мудила', 'уёбок', 'уебок', 'нахуй', 'похуй', 'заебал', 'заебись', 'охуеть', 'охуенно', 'сучара', 'блядина', 'проститутка', 'гандон', 'жопа', 'жопу', 'жопой', 'дура', 'дурочка', 'курица', 'овца', 'баран', 'осёл', 'осел', 'тупица', 'тупорылый', 'тупорылая', 'дебилоид', 'кретинка', 'ниггер', 'нигер', 'хач', 'чурка', 'чурбан', 'жид', 'жидяра', 'фашист', 'нацист', 'гитлер'];
+      // 🔴 МОЩНЫЙ ФИЛЬТР МАТА
+      const BAD_WORDS = [
+        'дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок',
+        'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество',
+        'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный',
+        'пидорас', 'пидор', 'педик', 'гомосек', 'гомик', 'петух',
+        'залупа', 'манда', 'вагина', 'секс', 'порно', 'трахать', 'выебать',
+        'долбоёб', 'долбоеб', 'мудак', 'мудила', 'уёбок', 'уебок',
+        'нахуй', 'похуй', 'заебал', 'заебись', 'охуеть', 'охуенно',
+        'сучара', 'блядина', 'проститутка', 'гандон',
+        'жопа', 'жопу', 'жопой',
+        'дура', 'дурочка', 'курица', 'овца', 'баран', 'осёл', 'осел',
+        'тупица', 'тупорылый', 'тупорылая', 'дебилоид', 'кретинка',
+        'ниггер', 'нигер', 'хач', 'чурка', 'чурбан', 'жид', 'жидяра',
+        'фашист', 'нацист', 'гитлер'
+      ];
 
       function containsBadWords(text) {
         if (!text) return false;
@@ -890,21 +904,18 @@
       function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
 
       // ============================================
-      // 🐣 ЛОГИКА ПИТОМЦА
+      // 🐣 ПИТОМЕЦ
       // ============================================
-      
-      // Состояние питомца хранится в localStorage
       let petState = loadJSON('nova_pet', {
-        lastFed: 0, // timestamp последнего кормления
-        isSleeping: true, // изначально спит
-        totalFed: 0 // сколько раз покормлен
+        lastFed: 0,
+        isSleeping: true,
+        totalFed: 0
       });
 
-      // Проверяем, спит ли питомец
       function isPetSleeping() {
-        if (!petState.lastFed) return true; // Никогда не кормили — спит
+        if (!petState.lastFed) return true;
         const hoursSinceFed = (Date.now() - petState.lastFed) / (1000 * 60 * 60);
-        return hoursSinceFed > PET_HUNGRY_HOURS; // Если прошло больше 4 часов — спит
+        return hoursSinceFed > PET_HUNGRY_HOURS;
       }
 
       function renderPet() {
@@ -940,7 +951,6 @@
           feedBtn.disabled = false;
         }
 
-        // Проверяем, хватает ли монет
         const coins = currentUser.coins || 0;
         if (coins < PET_FEED_COST) {
           feedBtn.disabled = true;
@@ -957,10 +967,8 @@
           return;
         }
 
-        // Списываем монеты
         currentUser.coins = coins - PET_FEED_COST;
         
-        // Обновляем состояние питомца
         petState.lastFed = Date.now();
         petState.isSleeping = false;
         petState.totalFed = (petState.totalFed || 0) + 1;
@@ -973,7 +981,6 @@
         updateUIForUser();
       }
 
-      // Проверяем каждые 30 секунд, не заснул ли питомец
       setInterval(() => {
         if (currentPage === 'home') renderPet();
       }, 30000);
@@ -1538,14 +1545,13 @@
         homeLoginBtn.addEventListener('click', () => switchPage('auth'));
       }
 
-      // Кнопка "Покормить" в питомце
       const feedPetBtn = document.getElementById('feedPetBtn');
       if (feedPetBtn) {
         feedPetBtn.addEventListener('click', feedPet);
       }
 
       // ============================================
-      // ЧАТ
+      // ЧАТ (С КРУПНЫМ ФИЛЬТРОМ ПРИ ОТОБРАЖЕНИИ)
       // ============================================
       const chatMessagesEl = document.getElementById('chatMessages');
       const chatInput = document.getElementById('chatInput');
@@ -1645,6 +1651,15 @@
               
               const author = users.find(u => u.name === m.name);
               const rank = author ? getRank(author.messageCount || 0) : RANKS[0];
+              
+              // 🔴 ГЛАВНОЕ: ПРОВЕРКА НА МАТ ПРИ ОТОБРАЖЕНИИ
+              const hasBadWords = containsBadWords(m.text);
+              
+              if (hasBadWords && !isOwn) {
+                // Чужие сообщения с матом скрываем
+                classes.push('blocked');
+                return `<div class="${classes.join(' ')}"><div class="chat-avatar">🚫</div><div class="chat-body"><div class="chat-meta"><span class="chat-name">${escapeHtml(m.name)}</span><span class="chat-time">${escapeHtml(displayTime)}</span></div><div class="chat-text">🚫 Сообщение скрыто (нарушение правил)</div></div></div>`;
+              }
 
               return `<div class="${classes.join(' ')}"><div class="chat-avatar">${escapeHtml(initial)}</div><div class="chat-body"><div class="chat-meta"><span class="chat-name">${escapeHtml(m.name)}</span><span style="color:${rank.color};font-size:0.7rem;">${rank.icon}</span><span class="chat-time">${escapeHtml(displayTime)}</span></div><div class="chat-text">${escapeHtml(m.text)}</div></div></div>`;
             }).join('');
@@ -1659,6 +1674,8 @@
         const msg = snapshot.val();
         if (!msg) return;
         if (currentUser && msg.name === currentUser.name) return;
+        // Не показываем уведомление, если сообщение с матом
+        if (containsBadWords(msg.text)) return;
         showNotification(msg.name, msg.text, false);
       });
 
@@ -1981,10 +1998,11 @@
           
           list.innerHTML = msgs.map(m => {
             const displayTime = m.time ? formatTime(m.time) : '';
+            const hasBad = containsBadWords(m.text);
             return `
-            <div class="admin-item">
+            <div class="admin-item" style="${hasBad ? 'border-color:#da3633;' : ''}">
               <div class="admin-item-info">
-                <h4>👤 ${escapeHtml(m.name)} ${m.isAdmin ? '<span style="background:#da3633;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:4px;">ADMIN</span>' : ''}</h4>
+                <h4>👤 ${escapeHtml(m.name)} ${m.isAdmin ? '<span style="background:#da3633;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:4px;">ADMIN</span>' : ''} ${hasBad ? '<span style="color:#f85149;font-size:0.7rem;">🚫 МАТ</span>' : ''}</h4>
                 <p>${escapeHtml(m.text)}</p>
                 <div class="meta"><span>⏰ ${escapeHtml(displayTime)}</span></div>
               </div>
@@ -2021,6 +2039,35 @@
         if (confirm('Очистить весь чат?')) {
           db.ref('chat').remove().then(() => showToast('Чат очищен'));
         }
+      });
+
+      // 🔴 АВТО-ОЧИСТКА МАТА ИЗ БАЗЫ
+      document.getElementById('chatAutoCleanBtn').addEventListener('click', () => {
+        if (!confirm('Найти и удалить все сообщения с матом из базы?')) return;
+        
+        db.ref('chat').once('value', (snapshot) => {
+          const data = snapshot.val();
+          if (!data) { showToast('Чат пуст', true); return; }
+          
+          let removed = 0;
+          const promises = [];
+          
+          Object.entries(data).forEach(([id, msg]) => {
+            if (containsBadWords(msg.text)) {
+              promises.push(db.ref('chat/' + id).remove());
+              removed++;
+            }
+          });
+          
+          if (removed === 0) {
+            showToast('Мат не найден');
+            return;
+          }
+          
+          Promise.all(promises).then(() => {
+            showToast(`Удалено ${removed} сообщений с матом`);
+          });
+        });
       });
 
       function renderAdminUsers() {
