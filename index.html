@@ -701,6 +701,60 @@
       const BOT_USERNAME = 'Vitaliy4635BOT'; 
       const ADMIN_PASSWORD_HASH = '7b8b965ad4bca0e41ab51de7b31363a1';
       
+      // 🔴 МОЩНЫЙ ФИЛЬТР МАТА (расширенный)
+      const BAD_WORDS = [
+        'дурак', 'идиот', 'тупой', 'лох', 'дебил', 'кретин', 'мразь', 'ублюдок',
+        'сволочь', 'гад', 'тварь', 'придурок', 'козёл', 'козел', 'чмо', 'ничтожество',
+        'мразота', 'шлюха', 'сука', 'блядь', 'хуй', 'пизда', 'ебать', 'ёбаный',
+        'пидорас', 'пидор', 'педик', 'гомосек', 'гомик', 'петух', 'петух',
+        'залупа', 'манда', 'вагина', 'секс', 'порно', 'трахать', 'выебать',
+        'долбоёб', 'долбоеб', 'мудак', 'мудила', 'уёбок', 'уебок',
+        'нахуй', 'похуй', 'заебал', 'заебись', 'охуеть', 'охуенно',
+        'сучара', 'блядина', 'шлюха', 'проститутка', 'гандон',
+        'жопа', 'жопу', 'жопой', 'попа', 'попка',
+        'дура', 'дурочка', 'курица', 'овца', 'баран', 'осёл', 'осел',
+        'тупица', 'тупорылый', 'тупорылая', 'дебилоид', 'кретинка',
+        'ниггер', 'нигер', 'хач', 'чурка', 'чурбан', 'жид', 'жидяра',
+        'фашист', 'нацист', 'гитлер'
+      ];
+
+      // Разрешённые слова, которые могут содержать мат случайно
+      const ALLOWED_WORDS = ['компьютер', 'пидор', 'сдачи', 'сдачу'];
+
+      // Функция проверки на мат
+      function containsBadWords(text) {
+        if (!text) return false;
+        const lower = text.toLowerCase().replace(/[.,!?;:()\[\]{}"'*]/g, '');
+        
+        for (const word of BAD_WORDS) {
+          // Проверяем точное вхождение
+          if (lower.includes(word)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      // Функция проверки на спам (повторяющиеся символы)
+      function isSpam(text) {
+        if (!text) return false;
+        
+        // Много одинаковых символов подряд (5+)
+        if (/(.)\1{4,}/i.test(text)) return true;
+        
+        // Много заглавных букв
+        const letters = text.replace(/[^a-zA-Zа-яА-Я]/g, '');
+        if (letters.length > 10) {
+          const upper = text.replace(/[^A-ZА-Я]/g, '').length;
+          if (upper / letters.length > 0.7) return true;
+        }
+        
+        // Слишком длинное
+        if (text.length > 500) return true;
+        
+        return false;
+      }
+
       function checkPassword(input) {
         if (input === 'nova2025') return true; 
         const hash = input.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0).toString(16);
@@ -752,6 +806,11 @@
       let typingTimeout = null;
       let isTyping = false;
       let currentPage = 'home';
+      
+      // 🔴 АНТИСПАМ: отслеживаем последнее сообщение
+      let lastMessageText = '';
+      let lastMessageTime = 0;
+      const SPAM_INTERVAL = 5000; // 5 секунд между сообщениями
 
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
@@ -932,11 +991,9 @@
         const data = snapshot.val();
         if (!data || !data.text) return;
         
-        // Если это то же объявление — не показываем
         if (lastAnnouncementId === data.id) return;
         lastAnnouncementId = data.id;
         
-        // Показываем объявление
         showNotification(data.title || '📢 Объявление', data.text, true);
       });
 
@@ -1243,7 +1300,9 @@
       const typingIndicator = document.getElementById('typingIndicator');
       const typingName = document.getElementById('typingName');
 
-      let lastMessageTime = 0;
+      // 🔴 АНТИСПАМ: сбрасываем таймер при загрузке
+      lastMessageTime = 0;
+      lastMessageText = '';
 
       function updateChatAccess() {
         const banned = currentUser ? isBanned(currentUser) : false;
@@ -1344,15 +1403,48 @@
         showNotification(msg.name, msg.text, false);
       });
 
+      // 🔴 ФУНКЦИЯ ОТПРАВКИ С АНТИСПАМОМ И ФИЛЬТРОМ
       function sendChatMessage() {
         if (!currentUser) { showToast('Войдите, чтобы писать', true); return; }
         if (isBanned(currentUser)) { showToast('Вы забанены в чате', true); return; }
+        
         const text = chatInput.value.trim();
         if (!text) return;
 
+        // 🔴 ПРОВЕРКА 1: Мат
+        if (containsBadWords(text)) {
+          showToast('❌ Сообщение содержит недопустимые слова!', true);
+          chatInput.value = '';
+          return;
+        }
+
+        // 🔴 ПРОВЕРКА 2: Спам-паттерны
+        if (isSpam(text)) {
+          showToast('❌ Слишком много повторяющихся символов или заглавных букв!', true);
+          return;
+        }
+
+        // 🔴 ПРОВЕРКА 3: Кулдаун
         const now = Date.now();
-        if (now - lastMessageTime < 3000) { showToast('Не так быстро!', true); return; }
-        
+        if (now - lastMessageTime < SPAM_INTERVAL) {
+          const remaining = Math.ceil((SPAM_INTERVAL - (now - lastMessageTime)) / 1000);
+          showToast(`⏳ Не так быстро! Подождите ${remaining} сек.`, true);
+          return;
+        }
+
+        // 🔴 ПРОВЕРКА 4: Одинаковые сообщения
+        if (text === lastMessageText) {
+          showToast('❌ Вы уже отправляли такое сообщение', true);
+          return;
+        }
+
+        // 🔴 ПРОВЕРКА 5: Слишком длинное
+        if (text.length > 500) {
+          showToast('❌ Сообщение слишком длинное (макс. 500)', true);
+          return;
+        }
+
+        // Всё ок — отправляем
         db.ref('chat').push({
           name: currentUser.name,
           text: text,
@@ -1361,6 +1453,7 @@
         }).then(() => {
           chatInput.value = '';
           lastMessageTime = now;
+          lastMessageText = text;
           currentUser.coins = (currentUser.coins || 0) + 1;
           saveUsers();
           
